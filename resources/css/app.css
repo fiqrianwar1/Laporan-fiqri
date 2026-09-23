@@ -1,0 +1,572 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+@theme {
+    --font-sans: 'Outfit', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+/* =====================================================================
+   Design system ringan: komponen dipakai ulang di semua halaman.
+   Cukup tambahkan class di markup, logika aplikasi tidak berubah.
+   ===================================================================== */
+@layer components {
+    /* --- Kartu kaca (glass) --- */
+    .card {
+        @apply rounded-2xl border-white/60 bg-white/70 shadow-sm backdrop-blur-xl transition-all duration-300;
+    }
+    .card-hover {
+        @apply hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/5;
+    }
+    /* Kepala kartu.
+       Garis pemisahnya HANYA muncul kalau ada blok isi setelahnya
+       (:not(:last-child)), supaya header yang isinya cuma teks tidak
+       meninggalkan garis nyasar sebelum area berikutnya. */
+    .card-head {
+        @apply flex-wrap items-center justify-between gap-3 border-b border-slate-200/60 px-4 py-4 sm:px-6;
+    }
+    .card-head:has(+ form) {
+        border-bottom-width: 0;
+    }
+    .card-head:has(+ form) + form {
+        border-top: 1px solid rgba(226, 232, 240, 0.6);
+    }
+    /* Latar kaca yang lebih tegas, dipakai untuk panel yang menempel (sticky) */
+    .card-glass {
+        @apply rounded-2xl border-white/70 bg-white/85 shadow-lg shadow-slate-900/5 backdrop-blur-xl;
+    }
+    .card-title {
+        @apply text-base font-bold text-slate-900;
+    }
+    .card-sub {
+        @apply text-xs text-slate-500;
+    }
+
+    /* --- Badge --- */
+    .pill {
+        @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide;
+    }
+    .pill-blue {
+        @apply border-blue-200 bg-blue-50 text-blue-700;
+    }
+    /* Badge di atas hero ungu: warna diselaraskan supaya tidak tabrakan. */
+    .pill-indigo {
+        @apply border-indigo-200 bg-indigo-50 text-indigo-700;
+    }
+    .pill-emerald {
+        @apply border-emerald-200 bg-emerald-50 text-emerald-700;
+    }
+    .pill-amber {
+        @apply border-amber-200 bg-amber-50 text-amber-700;
+    }
+    .pill-rose {
+        @apply border-rose-200 bg-rose-50 text-rose-700;
+    }
+    .pill-slate {
+        @apply border-slate-200 bg-slate-100 text-slate-600;
+    }
+
+    /* --- Tombol --- */
+    .btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60;
+    }
+    .btn-primary {
+        @apply bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/25 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/35;
+    }
+    .btn-dark {
+        @apply bg-slate-900 text-white shadow-md shadow-slate-900/20 hover:bg-slate-800 hover:shadow-lg;
+    }
+    .btn-outline {
+        @apply border-slate-200/70 bg-white/80 text-slate-700 hover:border-slate-300 hover:bg-white hover:shadow-md;
+    }
+    .btn-ghost {
+        @apply text-slate-600 hover:bg-slate-100 hover:text-slate-900;
+    }
+    .btn-sm {
+        @apply px-3.5 py-2 text-xs;
+    }
+
+    /* --- Input & label --- */
+    .input {
+        @apply w-full rounded-xl border-slate-200/70 bg-white/70 px-4 py-2.5 text-sm font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-blue-500/60 focus:bg-white focus:ring-2 focus:ring-blue-500/20;
+    }
+    .label {
+        @apply mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500;
+    }
+    .input-error {
+        @apply border-rose-300 bg-rose-50/40 focus:border-rose-400 focus:ring-rose-500/20;
+    }
+    .form-error {
+        @apply mt-1.5 text-xs font-medium text-rose-500;
+    }
+
+    /* --- Tabel --- */
+    .table {
+        @apply w-full border-collapse text-sm;
+    }
+    .table thead th {
+        @apply whitespace-nowrap border-b border-slate-200/60 bg-slate-50/70 px-4 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500 sm:px-5;
+    }
+    .table tbody td {
+        @apply border-b border-slate-100/70 px-4 py-3.5 align-middle text-slate-600 sm:px-5;
+    }
+    .table tbody tr {
+        @apply transition-colors duration-150 hover:bg-blue-50/40;
+    }
+    .table tbody tr:last-child td {
+        @apply border-b-0;
+    }
+
+    /* Ikon aksi di tabel: selalu kelihatan (penting buat layar sentuh) */
+    .row-action {
+        @apply inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-200 active:scale-95;
+    }
+
+    /* Tombol aksi baris dengan label.
+       Ikon saja bikin tombol "ketutup"/tidak kebaca, jadi di desktop
+       aksi pakai teks + ikon supaya jelas fungsinya. */
+    .act {
+        @apply inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-all duration-200 active:scale-95;
+    }
+    .act-icon {
+        @apply inline-flex items-center justify-center rounded-lg p-2 transition-all duration-200 active:scale-95;
+    }
+
+    /* --- Tabel yang bisa digeser ke samping ---
+       Banyak kolom (11 kolom di riwayat order) tidak muat di layar
+       desktop biasa, sehingga kolom paling kanan (Aksi) ikut terpotong.
+       Pembungkus di bawah ini mengizinkan geser horizontal, jadi tombol
+       edit/hapus selalu bisa dijangkau. */
+    .table-scroll {
+        @apply relative overflow-x-auto overscroll-x-contain;
+    }
+    /* Tabel tidak dipaksa w-full: kalau ruangnya sempit, tabel mengikuti
+       lebar minimumnya lalu bisa digeser, sehingga kolom seperti "Nama
+       Barang" tidak kegencet sampai teksnya terpotong. */
+    .table-scroll .table {
+        @apply border-collapse;
+    }
+    /* ==============================================================
+       Tabel lebar (banyak kolom) yang tetap enak dilihat.
+
+       Pendekatan: table-layout dibiarkan "auto" (isi yang menentukan lebar)
+       tetapi tiap kolom diberi min-width lewat custom property --w.
+
+       Kenapa bukan table-layout:fixed + lebar paksa? Karena begitu tabelnya
+       dipaksa lebih lebar dari ruang kartu, browser membuang kolom paling
+       kanan: Foto hilang dan kolom Aksi nembus keluar kartu. Dengan
+       min-width per kolom, tabel melebar sesuai kebutuhan minimum lalu
+       sisanya cukup digeser ke samping.
+       ============================================================== */
+    .table-lebar,
+    .table-oplosan {
+        table-layout: auto;
+        min-width: max-content;
+    }
+    .table-lebar th,
+    .table-lebar td,
+    .table-oplosan th,
+    .table-oplosan td {
+        min-width: var(--w, 0px);
+    }
+
+    /* Lebar minimum kolom tabel Riwayat Order (11 kolom). */
+    .table-lebar .col-tanggal { --w: 104px; }
+    .table-lebar .col-faktur  { --w: 150px; }
+    .table-lebar .col-kode    { --w: 76px; }
+    .table-lebar .col-nama    { --w: 330px; }
+    .table-lebar .col-qty     { --w: 64px; }
+    .table-lebar .col-satuan  { --w: 86px; }
+    .table-lebar .col-harga   { --w: 118px; }
+    .table-lebar .col-diskon  { --w: 86px; }
+    .table-lebar .col-total   { --w: 138px; }
+    .table-lebar .col-foto    { --w: 68px; }
+    .table-lebar .col-aksi    { --w: 178px; }
+
+    /* Lebar minimum kolom tabel Laporan Oplosan (9 kolom). */
+    .table-oplosan .col-tanggal { --w: 104px; }
+    .table-oplosan .col-plat    { --w: 126px; }
+    .table-oplosan .col-warna   { --w: 176px; }
+    .table-oplosan .col-nota    { --w: 146px; }
+    .table-oplosan .col-bahan   { --w: 220px; }
+    .table-oplosan .col-qty     { --w: 74px; }
+    .table-oplosan .col-total   { --w: 152px; }
+    .table-oplosan .col-foto    { --w: 68px; }
+    .table-oplosan .col-aksi    { --w: 172px; }
+
+    /* Teks panjang dipotong pakai elipsis (judul lengkap tetap ada
+       lewat atribut title). */
+    .table-lebar .sel-isi,
+    .table-oplosan .sel-isi {
+        @apply block truncate;
+    }
+
+    /* Kolom Aksi: tombolnya tidak boleh membungkus & tidak boleh menyusut. */
+    .table-lebar .col-aksi,
+    .table-oplosan .col-aksi {
+        white-space: nowrap;
+    }
+    .table-lebar .col-aksi .act,
+    .table-oplosan .col-aksi .act {
+        flex-shrink: 0;
+    }
+    .table-scroll thead th:first-child,
+    .table-scroll tbody td:first-child {
+        @apply sticky left-0 z-20 bg-white/95 backdrop-blur-sm;
+    }
+    /* Kolom pertama tetap punya latar solid supaya tulisan di belakangnya
+       tidak tembus saat tabel digeser. */
+    .table-scroll tbody tr:hover td:first-child {
+        @apply bg-blue-50/95;
+    }
+    .table-scroll thead th:first-child {
+        @apply bg-slate-50/95;
+    }
+    /* Petunjuk "geser ke samping" muncul hanya kalau tabel benar-benar terpotong */
+    .table-hint {
+        @apply items-center gap-2 border-b border-slate-100 bg-blue-50/60 px-4 py-2 text-[11px] font-semibold text-blue-700 lg:px-6;
+    }
+    /* Bayangan tepi: menandakan masih ada kolom di arah geser. */
+    .table-scroll.is-overflowing:not(.is-scrolled) {
+        box-shadow: inset -22px 0 22px -22px rgba(15, 23, 42, 0.28);
+    }
+    /* Bayangan di sisi kiri muncul setelah tabel digeser. */
+    .table-scroll.is-scrolled {
+        box-shadow: inset 22px 0 22px -22px rgba(15, 23, 42, 0.28);
+    }
+    .table-scroll.is-overflowing + .table-hint {
+        display: flex;
+    }
+}
+
+/* ============ Petunjuk tur UI (dipanggil dari controller) ============ */
+@keyframes tourUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.tour-card {
+    animation: tourUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.toast-auto {
+    animation: tourUp 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ============ Efek & animasi ============ */
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes floaty {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-12px); }
+}
+.animate-slide-down { animation: slideDown 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-fade-up    { animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-floaty     { animation: floaty 6s ease-in-out infinite; }
+
+/* Scrollbar tipis (cuma di perangkat pakai mouse) */
+@media (pointer: fine) {
+    ::-webkit-scrollbar { height: 10px; width: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+        background: rgba(100, 116, 139, 0.35);
+        border-radius: 9999px;
+        border: 3px solid transparent;
+        background-clip: content-box;
+    }
+    ::-webkit-scrollbar-thumb:hover { background-color: rgba(71, 85, 105, 0.55); }
+}
+
+/* Hormati preferensi pengguna yang mematikan animasi */
+@media (prefers-reduced-motion: reduce) {
+    .animate-slide-down,
+    .animate-fade-up,
+    .animate-floaty {
+        animation: none !important;
+    }
+}
+/* =====================================================================
+   Layout aplikasi: sidebar buka/tutup, bottom nav, command palette.
+   Ditaruh di sini (bukan <style> inline di Blade) supaya ikut
+   diproses Vite dan benar-benar ada di CSS hasil build.
+   ===================================================================== */
+
+/* Latar lembut: titik halus + cahaya biru */
+.app-bg::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    background:
+        radial-gradient(circle at 12% 8%, rgba(37, 99, 235, 0.10), transparent 42%),
+        radial-gradient(circle at 88% 92%, rgba(99, 102, 241, 0.10), transparent 42%),
+        radial-gradient(rgba(15, 23, 42, 0.045) 1px, transparent 1px);
+    background-size: auto, auto, 22px 22px;
+}
+
+.glass-panel {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+}
+
+/* Sidebar & topbar: latar sedikit lebih pekat dari kartu supaya
+   hierarkinya kebaca dan teks tetap kontras. */
+#app-sidebar,
+#app-topbar {
+    background: rgba(255, 255, 255, 0.86);
+}
+
+/* Kartu user yang menempel di dasar sidebar */
+.side-user {
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 20px -14px rgba(15, 23, 42, 0.45);
+}
+.side-user::after {
+    content: '';
+    position: absolute;
+    right: -2.5rem;
+    top: -2.5rem;
+    height: 6rem;
+    width: 6rem;
+    border-radius: 9999px;
+    background: radial-gradient(circle, rgba(37, 99, 235, 0.18), transparent 70%);
+    pointer-events: none;
+}
+
+/* --- Baris filter ringkas (dashboard, riwayat order, laporan oplosan) ---
+   Dibuat sebagai class sendiri, bukan utility breakpoint, karena lebar
+   konten tidak sama dengan lebar viewport (sidebar ikut memakan ruang).
+   Hasilnya: satu baris rapi selama ruangnya cukup, dan otomatis turun
+   jadi dua baris kalau sempit - tanpa membuat panel jadi tinggi. */
+.filter-baris {
+    @apply grid w-full gap-2;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+/* Di HP, tombol aksi dibiarkan meregang penuh supaya barisnya rapi
+   dan tidak memaksa halaman bisa digeser ke samping. */
+.filter-baris .filter-aksi {
+    @apply w-full;
+}
+/* Di layar lebar: kunci 4 kolom (Bulan, Tahun, Cabang, Tombol) supaya
+   tidak ada slot kosong sisa dari auto-fit. */
+@media (min-width: 1100px) {
+    .filter-baris {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .filter-baris > :last-child {
+        justify-self: stretch;
+    }
+}
+/* Tombol aksi ikut meregang seperti kolom lain, jadi tidak menyisakan
+   slot kosong di ujung baris saat tombol Reset tidak muncul. */
+.filter-baris .filter-aksi {
+    white-space: nowrap;
+}
+/* Panel filter yang menempel saat digulir. Latarnya harus pekat supaya
+   konten di belakangnya tidak tembus. */
+.filter-sticky {
+    @apply rounded-2xl border-white/70 bg-white/95 shadow-lg shadow-slate-900/5 backdrop-blur-xl;
+}
+/* --- Chip filter periode (dashboard & daftar) --- */
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    white-space: nowrap;
+    border-radius: 9999px;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    background: rgba(255, 255, 255, 0.8);
+    padding: 0.4rem 0.85rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #475569;
+    transition: all 0.2s ease;
+}
+.chip:hover {
+    border-color: #bfdbfe;
+    background: #fff;
+    color: #1d4ed8;
+    box-shadow: 0 6px 14px -8px rgba(37, 99, 235, 0.6);
+}
+.chip.active {
+    border-color: transparent;
+    background: linear-gradient(135deg, #2563eb, #4f46e5);
+    color: #fff;
+    box-shadow: 0 8px 18px -8px rgba(37, 99, 235, 0.8);
+}
+
+/* --- Menu sidebar --- */
+.side-link {
+    position: relative;
+    transition: all 0.25s ease;
+}
+.side-link:hover {
+    transform: translateX(2px);
+}
+.side-link.active {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(79, 70, 229, 0.08));
+    color: #1d4ed8;
+    font-weight: 700;
+}
+.side-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    height: 60%;
+    width: 3px;
+    border-radius: 9999px;
+    background: #2563eb;
+    transform: translateY(-50%);
+}
+
+/* --- Bottom navigation (HP) --- */
+.bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.bottom-link.active {
+    color: #1d4ed8;
+}
+.bottom-link.active .bottom-icon {
+    background: linear-gradient(135deg, #2563eb, #4f46e5);
+    color: #fff;
+    box-shadow: 0 8px 18px -6px rgba(37, 99, 235, 0.7);
+    transform: translateY(-1px);
+}
+
+/* --- Lembar menu bawah (sheet) --- */
+.sheet-backdrop {
+    transition: opacity 0.25s ease;
+}
+.sheet-panel {
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* Kondisi tertutup wajib benar-benar tidak menghalangi klik. */
+.sheet-closed {
+    visibility: hidden;
+    pointer-events: none;
+}
+.sheet-closed .sheet-backdrop { opacity: 0; }
+.sheet-closed .sheet-panel { transform: translateY(100%); }
+
+/* --- Command palette --- */
+.palette-closed { display: none; }
+
+/* ===== Sidebar buka/tutup ===== */
+#app-sidebar,
+#app-content,
+#app-topbar,
+#sidebar-toggle {
+    transition: width 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+                padding-left 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Elemen yang hanya boleh tampil di layar kecil / besar.
+   Dipakai supaya penyembunyian tidak kalah oleh utility display Tailwind. */
+@media (min-width: 1024px) {
+    .wtj-mobile-only { display: none !important; }
+}
+@media (max-width: 1023.98px) {
+    .wtj-desktop-only { display: none !important; }
+}
+
+/* Di HP tidak ada mode rail, dan sebaliknya grid "side-full"
+   (mis. aksi cepat) hanya aktif kalau sidebar sedang terbuka. */
+@media (max-width: 1023.98px) {
+    .side-rail { display: none !important; }
+}
+@media (min-width: 1024px) {
+    .side-full.grid-cols-2 { display: grid !important; }
+    .side-rail.mt-auto { margin-top: auto !important; }
+}
+
+@media (min-width: 1024px) {
+    /* Mode rail: sidebar menyusut jadi ikon saja.
+       !important dipakai karena elemen ini juga punya utility Tailwind
+       (flex/hidden/m-3) yang menang urutan specificity. */
+    .is-collapsed #app-sidebar {
+        width: 4.75rem !important;
+        overflow-x: hidden;
+    }
+    .is-collapsed #app-sidebar .side-full {
+        display: none !important;
+    }
+    .is-collapsed #app-sidebar .side-rail {
+        display: flex !important;
+    }
+    .is-collapsed #app-sidebar * {
+        max-width: 100%;
+    }
+
+    /* Mode rail: brand ditumpuk di tengah, tombol tutup disembunyikan
+       dan diganti tombol "besarkan" yang selalu tampak. */
+    .is-collapsed #app-sidebar .sidebar-head {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        padding-bottom: 0.5rem;
+        padding-left: 0;
+        padding-right: 0;
+    }
+    .is-collapsed #app-sidebar #sidebar-toggle {
+        display: none !important;
+    }
+    .is-collapsed #app-sidebar #sidebar-expand {
+        display: inline-flex !important;
+        margin: 0 auto;
+        height: 2.25rem;
+        width: 2.25rem;
+    }
+    .is-collapsed #app-sidebar nav {
+        margin-top: 0.5rem;
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+    .is-collapsed #app-sidebar nav a,
+    .is-collapsed #app-sidebar nav button {
+        justify-content: center;
+    }
+
+    /* Menu tanpa anak panah: ikon jadi tombol utama yang lebih besar. */
+    .is-collapsed #app-sidebar nav .menu-icon {
+        height: 2.5rem;
+        width: 2.5rem;
+    }
+    .is-collapsed #app-sidebar nav .menu-icon svg {
+        height: 1.25rem;
+        width: 1.25rem;
+    }
+    .is-collapsed #app-sidebar .side-link::before {
+        display: none;
+    }
+
+    /* Konten & topbar ikut melebar saat sidebar ditutup.
+       !important wajib: utility lg:pl-72 specificity-nya setara. */
+    .is-collapsed #app-content,
+    .is-collapsed #app-topbar {
+        padding-left: 4.75rem !important;
+    }
+
+    /* Ikon tombol buka-tutup (mode lebar) */
+    #sidebar-toggle .icon-collapse { display: inline-flex; }
+    #sidebar-toggle .icon-expand { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #app-sidebar,
+    #app-content,
+    #app-topbar,
+    #sidebar-toggle {
+        transition: none !important;
+    }
+}
