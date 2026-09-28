@@ -6,6 +6,39 @@ Dibuat dengan Laravel 13 + Tailwind CSS 4, dengan tampilan yang menyesuaikan oto
 
 ---
 
+## Tampilan Aplikasi
+
+### Dashboard
+Ringkasan statistik, tren 6 bulan, dan ringkasan bulan berjalan.
+
+![Dashboard](docs/screenshots/dashboard-desktop.png)
+
+### Laporan Oplosan
+Rekap tinting per unit, dipisah per cabang, dengan total nilai tiap nota.
+
+![Laporan Oplosan](docs/screenshots/laporan-oplosan-desktop.png)
+
+### Riwayat Order
+Rekap belanja bahan & consumable per cabang.
+
+![Riwayat Order](docs/screenshots/riwayat-order-desktop.png)
+
+### Mode Manajer
+Tampilan pengawasan — menyorot biaya yang menyimpang dari rata-rata.
+
+![Dashboard Manajer](docs/screenshots/mode-manajer.png)
+
+### Tampilan di HP
+Bottom navigation, kartu bertumpuk, dan tombol besar supaya nyaman dipakai satu tangan.
+
+<p align="center">
+  <img src="docs/screenshots/dashboard-hp.png" width="300" alt="Dashboard di HP">
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/laporan-oplosan-hp.png" width="300" alt="Laporan Oplosan di HP">
+</p>
+
+---
+
 ## Fitur
 
 ### Pencatatan
@@ -33,6 +66,9 @@ Dibuat dengan Laravel 13 + Tailwind CSS 4, dengan tampilan yang menyesuaikan oto
 - Responsif penuh: **bottom navigation** di HP, sidebar di desktop.
 - Command palette (Ctrl + K) untuk lompat antar halaman.
 - Tabel lebar bisa digeser ke samping tanpa merusak layout.
+
+> Screenshot di atas diambil otomatis lewat `scripts/ambil-screenshot.mjs`
+> (Playwright). Jalankan `node scripts/ambil-screenshot.mjs` kalau tampilan berubah.
 
 ---
 
@@ -129,6 +165,13 @@ app/
   Support/
     Cabang.php                     Daftar cabang (satu sumber)
     NotaGrouper.php                Pengelompokan item jadi nota
+    FotoNota.php                   Pengolahan foto nota
+    Rupiah.php                     Format angka rupiah
+    Tanggal.php                    Format tanggal Indonesia
+
+docs/screenshots/                  Screenshot untuk README
+scripts/
+  ambil-screenshot.mjs             Ambil screenshot otomatis (Playwright)
 
 resources/views/
   dashboard.blade.php              Dashboard
