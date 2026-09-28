@@ -75,15 +75,17 @@
         </div>
 
         {{-- Kartu Login --}}
-        <div class="fade-up fade-up-2 bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl shadow-slate-900/5 ring-1 ring-white/70 p-7 sm:p-8">
+        <div class="fade-up fade-up-2 bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl shadow-slate-900/5 ring-1 ring-white/70 p-6 sm:p-8">
             <h2 class="text-xl font-bold text-slate-900 tracking-tight">Masuk ke Sistem</h2>
             <p class="text-sm text-slate-500 mt-1 mb-6">Pilih peranmu, lalu masukkan akun.</p>
 
-            {{-- Dua tombol pilihan peran --}}
-            <div class="grid grid-cols-2 gap-3 mb-5">
-                <button type="button" data-role="tinter" data-accent="blue"
+            {{-- Dua tombol pilihan peran.
+                 Dibungkus satu grup supaya jelas bahwa pilihan ini saling
+                 menggantikan, bukan dua tombol yang bisa menyala bersama. --}}
+            <div class="grid grid-cols-2 gap-3 mb-4" role="radiogroup" aria-label="Pilih peran">
+                <button type="button" data-role="tinter" data-accent="blue" role="radio" aria-checked="true" aria-label="Peran tinter: bikin laporan"
                         class="role-btn is-active group relative rounded-2xl border-2 border-slate-200 bg-white p-4 text-left transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/30">
-                    <span class="role-check absolute top-3 right-3 w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center opacity-0 scale-75 transition-all duration-300">
+                    <span class="role-check absolute top-3 right-3 w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center opacity-100 scale-100 transition-all duration-300">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
                         </svg>
@@ -97,9 +99,9 @@
                     <p class="text-xs text-slate-500 mt-0.5">Isi & kelola data</p>
                 </button>
 
-                <button type="button" data-role="manajer" data-accent="emerald"
+                <button type="button" data-role="manajer" data-accent="emerald" role="radio" aria-checked="false" aria-label="Peran manajer: cek laporan"
                         class="role-btn group relative rounded-2xl border-2 border-slate-200 bg-white p-4 text-left transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/30">
-                    <span class="role-check absolute top-3 right-3 w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center opacity-0 scale-75 transition-all duration-300">
+                    <span class="role-check absolute top-3 right-3 w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center opacity-0 scale-75 transition-all duration-300">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
                         </svg>
@@ -117,7 +119,7 @@
 
             {{-- Info mode terpilih --}}
             <div id="roleInfo" class="mb-5 flex items-center gap-2 text-xs font-medium text-slate-600 bg-slate-100/80 rounded-xl px-3 py-2.5">
-                <span class="h-2 w-2 rounded-full bg-blue-600 animate-pulse"></span>
+                <span id="roleDot" class="h-2 w-2 shrink-0 rounded-full bg-blue-600"></span>
                 <span id="roleInfoText">Mode: Bikin Laporan (bisa isi data)</span>
             </div>
 
@@ -194,6 +196,7 @@
 @push('scripts')
 <script>
     const roleInfoText = document.getElementById('roleInfoText');
+    const roleDot = document.getElementById('roleDot');
     const roleLabels = {
         tinter: 'Mode: Bikin Laporan (bisa isi data)',
         manajer: 'Mode: Cek Laporan (hanya melihat)',
@@ -203,12 +206,14 @@
         // Reset semua tombol
         document.querySelectorAll('.role-btn').forEach(b => {
             b.classList.remove('is-active');
+            b.setAttribute('aria-checked', 'false');
             b.querySelector('.role-check').classList.add('opacity-0', 'scale-75');
             b.querySelector('.role-check').classList.remove('opacity-100', 'scale-100');
         });
 
         // Tandai tombol terpilih
         btn.classList.add('is-active');
+        btn.setAttribute('aria-checked', 'true');
         const check = btn.querySelector('.role-check');
         check.classList.remove('opacity-0', 'scale-75');
         check.classList.add('opacity-100', 'scale-100');
@@ -217,6 +222,13 @@
         check.classList.toggle('bg-blue-600', btn.dataset.accent === 'blue');
         check.classList.toggle('bg-emerald-600', btn.dataset.accent === 'emerald');
 
+        // Titik penanda mode ikut warna perannya, jadi tidak ada
+        // satu pun elemen biru saat mode manajer sedang terpilih.
+        if (roleDot) {
+            roleDot.classList.toggle('bg-blue-600', btn.dataset.accent === 'blue');
+            roleDot.classList.toggle('bg-emerald-600', btn.dataset.accent === 'emerald');
+        }
+
         // Update info mode
         roleInfoText.textContent = roleLabels[btn.dataset.role];
     }
@@ -224,7 +236,10 @@
     document.querySelectorAll('.role-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             selectRole(btn);
-            document.getElementById('email').focus();
+
+            // Fokus diarahkan ke kolom email supaya bisa langsung
+            // mengetik memakai keyboard, tanpa klik ulang.
+            document.getElementById('email')?.focus();
         });
     });
 

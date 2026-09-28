@@ -7,7 +7,6 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-    <style>
         body {
             font-family: 'Outfit', sans-serif;
             background: linear-gradient(135deg, #f6f8fb 0%, #e5ebf4 100%);
@@ -363,97 +362,102 @@
         </div>
     </div>
 
-    {{-- Content --}}
+    {{-- ================= KONTEN ================= --}}
     <div id="app-content" class="lg:pl-72">
-    <main class="mx-auto w-full max-w-7xl px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-12 lg:pt-8">
-        @if (session('success'))
-            <div data-toast class="animate-slide-down mb-5 flex items-center gap-3 rounded-2xl border-emerald-500/20 bg-emerald-500/10 px-4 py-3.5 text-emerald-700 shadow-sm backdrop-blur-sm sm:px-5">
-                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-500/20">
-                    <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                    </svg>
-                </div>
-                <p class="text-sm font-medium">{{ session('success') }}</p>
-                <button type="button" onclick="this.parentElement.remove()" class="js-only ml-auto text-emerald-600/70 transition hover:text-emerald-700" aria-label="Tutup">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12"/>
-                    </svg>
-                </button>
-            </div>
-        @endif
-        {{-- Banner jarak pandang: "Anda sedang di mana" + aksi cepat.
-             Hanya muncul untuk pengguna yang sudah login dan tidak
-             ditampilkan di dashboard (di sana sudah ada header sendiri). --}}
-        @auth
-            @unless (request()->routeIs('dashboard'))
-                @php
-                    $tglAktif = \Carbon\Carbon::now()->locale('id');
-                    $sudahBulan = request()->filled('bulan') || request()->filled('tahun');
-                @endphp
-                {{-- Banner sapaan: alurnya normal (tidak sticky) supaya tidak
-                     tertutup topbar. Yang sticky cukup panel filter di
-                     halaman masing-masing.
-                     Catatan: kelas dasarnya "flex" (bukan "flex-col"), kalau
-                     tidak, flex-col akan menang terus dan isinya tetap
-                     bertumpuk walau layarnya sudah lebar. --}}
-                <div class="mb-5 flex-col gap-3 rounded-2xl border-white/70 bg-white/85 px-4 py-3.5 shadow-sm backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:px-5">
-                    <div class="flex min-w-0 flex-1 items-center gap-3">
-                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-sm font-bold text-white shadow-md shadow-blue-500/30">
-                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                        </div>
-                        <div class="min-w-0">
-                            <p class="truncate text-sm font-bold text-slate-800">
-                                Selamat bekerja, {{ auth()->user()->name }}{{ $bolehIsi ? '' : '!' }}
-                           </p>
-                            <p class="truncate text-xs text-slate-500">
-                                {{ $tglAktif->translatedFormat('l, d F Y') }}
-                                <span class="mx-1 text-slate-300">•</span>
-                                <span class="font-semibold {{ $bolehIsi ? 'text-blue-600' : 'text-emerald-600' }}">
-                                    {{ $bolehIsi ? 'Mode isi: bisa tambah, ubah, hapus' : 'Mode lihat: hanya baca data' }}
-                                </span>
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="flex w-full shrink-0 flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
-                        @if ($sudahBulan)
-                            <a href="{{ url()->current() }}" class="chip" title="Tampilkan semua periode">
-                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12"/>
-                                </svg>
-                                Reset filter
-                            </a>
-                        @endif
-                        @if ($bolehIsi)
-                            <a href="{{ request()->routeIs('riwayat-order*') ? route('riwayat-order.create') : route('laporan-oplosan.create') }}"
-                               class="btn btn-primary btn-sm">
-                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                                </svg>
-                                {{ request()->routeIs('riwayat-order*') ? 'Tambah Order' : 'Tambah Laporan' }}
-                            </a>
-                        @endif
-                        <button type="button" data-palette-open class="chip" title="Cari menu (Ctrl + K)">
-                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/>
+        {{-- pb-28 di HP: memberi ruang untuk navigasi bawah, ditambah
+             safe-area pada perangkat ber-notch supaya baris terakhir
+             tidak tertutup. --}}
+        <main class="mx-auto w-full max-w-7xl px-4 pt-5 sm:px-6 lg:px-8 lg:pt-8">
+            <div class="pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] lg:pb-12">
+                @if (session('success'))
+                    <div data-toast class="animate-slide-down mb-5 flex items-center gap-3 rounded-2xl border-emerald-500/20 bg-emerald-500/10 px-4 py-3.5 text-emerald-700 shadow-sm backdrop-blur-sm sm:px-5">
+                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-500/20">
+                            <svg class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                             </svg>
-                            Cari menu
+                        </div>
+                        <p class="text-sm font-medium">{{ session('success') }}</p>
+                        <button type="button" onclick="this.parentElement.remove()" class="js-only ml-auto text-emerald-600/70 transition hover:text-emerald-700" aria-label="Tutup">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12"/>
+                            </svg>
                         </button>
                     </div>
-                </div>
-            @endunless
-        @endauth
-        @yield('content')
-            </main>
-        </div>
+                @endif
+                {{-- Banner jarak pandang: "Anda sedang di mana" + aksi cepat.
+                     Hanya muncul untuk pengguna yang sudah login dan tidak
+                     ditampilkan di dashboard (di sana sudah ada header sendiri). --}}
+                @auth
+                    @unless (request()->routeIs('dashboard') || request()->routeIs('manajer.*'))
+                        @php
+                            $tglAktif = \Carbon\Carbon::now()->locale('id');
+                            $sudahFilter = request()->filled('bulan') || request()->filled('tahun') || request()->filled('cabang');
+                        @endphp
+                        {{-- Banner sapaan: menyatu dengan konten (tanpa bayangan
+                             mengambang) supaya hierarkinya jelas: banner dulu,
+                             baru kartu-kartu isi di bawahnya. --}}
+                        <div class="mb-5 flex flex-col gap-3 rounded-2xl border border-white/70 bg-white/80 px-4 py-3.5 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                            <div class="flex min-w-0 flex-1 items-center gap-3">
+                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-sm font-bold text-white shadow-md shadow-blue-500/30">
+                                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="truncate text-sm font-bold text-slate-800">
+                                        Selamat bekerja, {{ auth()->user()->name }}{{ $bolehIsi ? '' : '!' }}
+                                    </p>
+                                    <p class="truncate text-xs text-slate-500">
+                                        {{ $tglAktif->translatedFormat('l, d F Y') }}
+                                        <span class="mx-1 text-slate-300">•</span>
+                                        <span class="font-semibold {{ $bolehIsi ? 'text-blue-600' : 'text-emerald-600' }}">
+                                            {{ $bolehIsi ? 'Mode isi: bisa tambah, ubah, hapus' : 'Mode lihat: hanya baca data' }}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="flex w-full shrink-0 flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
+                                @if ($sudahFilter)
+                                    <a href="{{ url()->current() }}" class="chip" title="Tampilkan semua periode">
+                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12"/>
+                                        </svg>
+                                        Reset filter
+                                    </a>
+                                @endif
+                                @if ($bolehIsi)
+                                    <a href="{{ request()->routeIs('riwayat-order*') ? route('riwayat-order.create') : route('laporan-oplosan.create') }}"
+                                       class="btn btn-primary btn-sm">
+                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                        </svg>
+                                        {{ request()->routeIs('riwayat-order*') ? 'Tambah Order' : 'Tambah Laporan' }}
+                                    </a>
+                                @endif
+                                <button type="button" data-palette-open class="chip" title="Cari menu (Ctrl + K)">
+                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/>
+                                    </svg>
+                                    Cari menu
+                                </button>
+                            </div>
+                        </div>
+                    @endunless
+                @endauth
+                @yield('content')
+            </div>
+        </main>
+    </div>
 
 {{-- ================= NAVIGASI BAWAH (HP) ================= --}}
 @auth
+    {{-- Label pendek: nama menu ditulis ulang supaya muat satu baris
+         ("Dashboard" jadi "Beranda", dsb). --}}
     <nav class="bottom-nav fixed inset-x-0 bottom-0 z-50 border-t border-white/70 glass-panel lg:hidden">
         <div class="mx-auto flex max-w-lg items-stretch justify-around">
             @foreach ($menuUtama as $item)
                 <a href="{{ route($item['route']) }}"
-                   class="bottom-link flex-1 flex-col items-center gap-1 px-2 py-2.5 text-[11px] font-semibold {{ $item['aktif'] ? 'active text-blue-700' : 'text-slate-500' }}">
+                   title="{{ $item['label'] }}"
+                   class="bottom-link flex flex-1 flex-col items-center gap-1 px-2 py-2.5 text-[11px] font-semibold {{ $item['aktif'] ? 'active text-blue-700' : 'text-slate-500' }}">
                     <span class="bottom-icon flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-300 {{ $item['aktif'] ? '' : 'text-slate-500' }}">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $item['icon'] }}"/>
@@ -488,11 +492,11 @@
         </div>
         <div id="palette-list" class="max-h-72 overflow-y-auto p-2"></div>
     </div>
-                        </div>
+</div>
 
-                        @stack('scripts')
+@stack('scripts')
 
-                        <script>
+<script>
                         (function () {
                             const bolehIsi = @json($bolehIsi);
 
@@ -690,6 +694,6 @@
                                 }, 5000);
                             });
                         })();
-                        </script>
-                    </body>
-                    </html>
+</script>
+</body>
+</html>

@@ -30,6 +30,16 @@ class LaporanOplosan extends Model
     ];
 
     /**
+     * Laporan oplosan tidak memakai diskon, jadi potongannya selalu nol.
+     * Accessor ini disediakan supaya tabel/PDF bisa memakai nama kolom yang
+     * sama dengan riwayat order.
+     */
+    public function getNominalDiskonAttribute(): float
+    {
+        return 0.0;
+    }
+
+    /**
      * Nomor bukti nota tanpa spasi/tanda baca - dipakai sebagai kunci
      * pengelompokan item yang berasal dari satu nota yang sama.
      */

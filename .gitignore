@@ -29,3 +29,13 @@ Thumbs.db
 # Screenshot / file sementara
 /storage/*.png
 /storage/*.jpg
+
+# Skrip debug / QA lokal (jangan ikut di-commit)
+/cek-*.php
+/cek-*.mjs
+/qa-*.mjs
+/qa-*.png
+/qa-*.jpg
+/bukti-*.png
+/bukti-*.jpg
+/scripts/_tmp_*

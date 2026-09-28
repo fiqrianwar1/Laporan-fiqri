@@ -6,6 +6,7 @@ use App\Models\LaporanOplosan;
 use App\Models\RiwayatOrder;
 use App\Support\Cabang;
 use App\Support\NotaGrouper;
+use App\Support\Tanggal;
 use Illuminate\Http\Request;
 
 /**
@@ -247,7 +248,7 @@ class ManajerController extends Controller
                 return [
                     'jenis'   => 'oplosan',
                     'tanggal' => $item->tanggal,
-                    'judul'   => $item->kode_warna_unit,
+                    'judul'   => Tanggal::panjang($item->tanggal),
                     'rincian' => $item->no_plat . " $tt " . $item->rincian_bahan,
                     'nilai'   => 'Rp ' . number_format((float) $item->harga_nota, 0, ',', '.'),
                     'nominal' => (float) $item->harga_nota,
@@ -260,7 +261,7 @@ class ManajerController extends Controller
                 return [
                     'jenis'   => 'order',
                     'tanggal' => $item->tanggal,
-                    'judul'   => $item->nama_barang,
+                    'judul'   => Tanggal::panjang($item->tanggal),
                     'rincian' => $item->no_bukti_faktur . " $tt " . $item->qty . " $tt " . $item->satuan,
                     'nilai'   => 'Rp ' . number_format((float) $item->total_item, 0, ',', '.'),
                     'nominal' => (float) $item->total_item,

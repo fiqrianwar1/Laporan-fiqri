@@ -20,7 +20,9 @@ test('dashboard menampilkan ringkasan periode', function () {
         ->get(route('dashboard'))
         ->assertOk()
         ->assertSee('Filter Periode')
-        ->assertSee('Semua periode');
+        // Dashboard default-nya tahun berjalan, jadi labelnya harus jujur
+        // menyebut tahun itu - bukan "Semua periode".
+        ->assertSee('Tahun ' . now()->year);
 });
 
 test('riwayat order tampil lengkap dengan tabel yang bisa digeser & tombol aksi', function () {
@@ -43,7 +45,7 @@ test('riwayat order tampil lengkap dengan tabel yang bisa digeser & tombol aksi'
         // Data benar-benar dirender
         ->assertSee('PERMANENT DOYBLE TAPE 24MM X 4,5 M')
         ->assertSee('W.PJ.260901010')
-        ->assertSee('Rp 399.000')
+        ->assertSee('Rp 399.000,00')
         // Ditampilkan sebagai nota yang bisa dibuka-tutup
         ->assertSee('Daftar Nota &amp; Item', escape: false)
         ->assertSee('<details', escape: false)
@@ -89,8 +91,10 @@ test('satu nota yang berisi banyak item tampil sebagai satu nota dengan rincian 
     $halaman->assertSee('WIWAT SUPER GLOSSY A8800');
     $halaman->assertSee('item #2');
 
-    // Header nota menampilkan jumlah, bukan "1 nota" terpisah tiap barang
-    expect(substr_count($halaman->getContent(), '>WPJ.260905001<'))->toBe(1);
+    // Header nota menampilkan jumlah, bukan "1 nota" terpisah tiap barang.
+    // Nomor nota ditulis di baris info, jadi yang dihitung kemunculannya
+    // dalam satu baris teks (bukan cuma tag kosong).
+    expect(preg_match_all('/WPJ\.260905001/', $halaman->getContent()))->toBe(1);
 });
 
 test('laporan oplosan tampil lengkap dengan tabel yang bisa digeser & tombol aksi', function () {

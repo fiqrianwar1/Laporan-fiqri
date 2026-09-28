@@ -13,6 +13,103 @@
    Cukup tambahkan class di markup, logika aplikasi tidak berubah.
    ===================================================================== */
 @layer components {
+    /* --- Tampilan angka (nominal rupiah & qty) ---
+       Outfit punya angka yang tipis dan lebarnya tidak seragam, jadi nominal
+       rupiah terlihat kecil dan "goyang" saat digitnya berubah panjang.
+       Kelas di bawah memakai font sistem (Segoe UI / Roboto / SF) yang
+       angkanya lebih tebal dan jelas, plus tabular-nums supaya semua digit
+       sama lebar - kolom rupiah jadi rata dan mudah dibandingkan. */
+    .angka {
+        font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+            'Helvetica Neue', Arial, sans-serif;
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: 'tnum' 1;
+        letter-spacing: -0.01em;
+    }
+
+    /* body { font-family: 'Outfit' } dipasang lewat <style> inline di layout,
+       dan itu menang atas class biasa untuk font-family. Jadi font angka
+       dikunci lewat pemilih di dalam body + !important. */
+    body .angka,
+    body .angka-kartu,
+    body .angka-sel,
+    body .angka-kecil,
+    body .angka-total,
+    body .angka-nota {
+        font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+            'Helvetica Neue', Arial, sans-serif !important;
+        font-variant-numeric: tabular-nums !important;
+        font-feature-settings: 'tnum' 1 !important;
+    }
+
+    /* Nominal di kartu statistik (angka besar).
+       Ukurannya memakai clamp supaya nominal panjang (mis. Rp 50.130.100,00)
+       tetap muat di lebar kartu tanpa pecah jadi beberapa baris, sementara
+       nominal pendek (mis. 34) tetap terlihat besar. Kartu perlu diberi
+       container-type: inline-size supaya 100cqi mengacu ke lebar kartu,
+       bukan lebar layar. --*/
+    .stat-card {
+        container-type: inline-size;
+    }
+    .angka-kartu {
+        font-size: clamp(1.05rem, 9cqi, 1.7rem);
+        line-height: 1.2;
+        font-weight: 800;
+        white-space: nowrap;
+        color: var(--color-slate-900);
+    }
+
+    /* Di HP kartu statistik tampil satu per baris, jadi lebarnya penuh dan
+       nominal panjang tetap tidak muat kalau ukurannya ikut lebar kartu.
+       Di layar kecil ukurannya dipatok sedang supaya angkanya utuh. */
+    @media (max-width: 639px) {
+        .angka-kartu {
+            font-size: 1.35rem;
+        }
+    }
+
+    /* Nominal di dalam tabel: kolom kanan dibuat rata & digitnya sejajar. */
+    .angka-sel {
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+        color: var(--color-slate-900);
+    }
+
+    /* Nominal pendukung (harga satuan, nominal diskon, harga per CC). */
+    .angka-kecil {
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+        color: var(--color-slate-600);
+    }
+
+    /* Baris total di kaki tabel: angkanya paling ditonjolkan. */
+    .angka-total {
+        font-size: 15px;
+        font-weight: 800;
+        white-space: nowrap;
+        color: var(--color-slate-900);
+    }
+
+    /* Judul baris total (mis. "Grand Total Nota"). */
+    .angka-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+        white-space: nowrap;
+        color: var(--color-slate-500);
+    }
+
+    /* Nominal besar di kepala nota yang bisa dibuka-tutup. */
+    .angka-nota {
+        font-size: 15px;
+        font-weight: 800;
+        white-space: nowrap;
+        color: var(--color-slate-900);
+    }
+
     /* --- Kartu kaca (glass) --- */
     .card {
         @apply rounded-2xl border-white/60 bg-white/70 shadow-sm backdrop-blur-xl transition-all duration-300;
@@ -106,6 +203,90 @@
     .table {
         @apply w-full border-collapse text-sm;
     }
+
+    /* ==============================================================
+       Komponen tampilan yang dipakai berulang di banyak halaman.
+       Ditulis sekali di sini supaya semua halaman punya bentuk,
+       jarak, dan ukuran yang sama - fungsi aplikasi tidak berubah.
+       ============================================================== */
+
+    /* --- Header halaman daftar/dashboard ---
+       Satu baris: di kanan ada badge kecil "halaman apa", judul besar,
+       dan satu kalimat keterangan. Aksi utama dipisah ke baris sendiri
+       (lihat .page-actions) supaya tidak berdesakan dengan judul. */
+    .page-head {
+        @apply flex flex-col gap-3 border-b border-slate-200/60 pb-5 lg:flex-row lg:items-end lg:justify-between;
+    }
+    .page-title {
+        @apply text-xl font-bold tracking-tight text-slate-900 sm:text-2xl;
+    }
+    .page-sub {
+        @apply mt-1 text-sm text-slate-500;
+    }
+    /* Kelmbol aksi header (kartu putih seragam, tidak lagi
+       tombol tembus pandang yang warnanya berubah-ubah). */
+    .page-actions {
+        @apply flex flex-wrap items-center gap-2;
+    }
+
+    /* --- Kartu statistik ringkas ---
+       Isinya: ikon berwarna, label huruf kecil, angka besar, keterangan.
+       Ikon & ukuran seragam di semua halaman supaya kolom kartu rapi.
+       Catatan: properti kartu ditulis lengkap (bukan @apply card) karena
+       Tailwind tidak mengizinkan @apply ke class buatan sendiri. --*/
+    .stat-card {
+        @apply relative overflow-hidden rounded-2xl border-white/60 bg-white/70 p-4 shadow-sm backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/5 sm:p-5;
+        /* Nominal di dalamnya diukur terhadap lebar kartu ini. */
+        container-type: inline-size;
+    }
+    .stat-icon {
+        @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white shadow-md;
+    }
+    .stat-label {
+        @apply text-[11px] font-bold uppercase tracking-wider text-slate-500;
+    }
+
+    /* Ikon bulat berwarna (mis. foto, peringatan) dengan ukuran seragam. */
+    .icon-badge {
+        @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-xl;
+    }
+
+    /* --- Panel filter periode ---
+       Dipakai di semua halaman daftar: judul panel di kiri, form di kanan.
+       Di HP isinya bertumpuk, di layar lebar jadi satu baris. */
+    .filter-panel {
+        @apply rounded-2xl border border-white/70 bg-white/95 shadow-sm shadow-slate-900/5 backdrop-blur-xl;
+    }
+    .filter-panel-head {
+        @apply flex items-start gap-3 border-b border-slate-200/60 px-4 py-3.5 sm:items-center sm:px-5;
+    }
+    .filter-panel-body {
+        @apply p-3 sm:p-4;
+    }
+
+    /* --- Area konten yang diisi tabel daftar --- */
+    .table-wrap {
+        @apply p-4 sm:p-5;
+    }
+
+    /* --- Kartu form (create/edit) ---
+       Satu kartu = satu kelompok isian, dengan kepala kartu seragam. */
+    .form-card {
+        @apply overflow-hidden rounded-2xl border-white/60 bg-white/70 shadow-sm backdrop-blur-xl;
+    }
+    .form-card-head {
+        @apply flex items-start gap-3 border-b border-slate-200/60 px-4 py-4 sm:px-5;
+    }
+    .form-card-body {
+        @apply grid gap-4 p-4 sm:grid-cols-2 sm:gap-5 sm:p-5;
+    }
+
+    /* --- Bar aksi form (Simpan / Batal) ---
+       Ditempel di bawah layar saat halaman digulir supaya tombol
+       simpan selalu terjangkau tanpa harus menggulir balik. */
+    .form-actions {
+        @apply sticky bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] z-10 rounded-2xl border border-white/70 bg-white/95 p-3 shadow-lg shadow-slate-900/5 backdrop-blur-xl sm:p-4 lg:bottom-4;
+    }
     .table thead th {
         @apply whitespace-nowrap border-b border-slate-200/60 bg-slate-50/70 px-4 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500 sm:px-5;
     }
@@ -132,6 +313,44 @@
     }
     .act-icon {
         @apply inline-flex items-center justify-center rounded-lg p-2 transition-all duration-200 active:scale-95;
+    }
+
+    /* Tombol aksi baris "Edit / Hapus": bentuk pil dengan ikon kecil,
+       dipakai di tabel item dan di daftar kartu supaya seragam. */
+    .btn-act {
+        @apply inline-flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-bold transition-all duration-200 active:scale-95;
+    }
+
+    /* Tombol lebar penuh, dipakai di kepala nota (buka detail). */
+    .btn-detail {
+        @apply flex w-full items-center justify-center gap-1.5 border-t border-slate-200/70 px-4 py-2.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900;
+    }
+
+    /* --- Tabel item di dalam kartu nota ---
+       Disamakan di semua halaman: kepala tabel berlatar abu tipis,
+       angkanya rata kanan, dan barisnya diberi jarak yang sama. */
+    .table-item {
+        @apply w-full min-w-[640px] border-separate border-spacing-0 text-xs;
+    }
+    .table-item thead th {
+        @apply border-b border-slate-200 bg-slate-50/70 px-2.5 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500 first:rounded-tl-lg last:rounded-tr-lg;
+    }
+    .table-item tbody td {
+        @apply border-b border-slate-100 align-top px-2.5 py-2.5 text-slate-600;
+    }
+    .table-item tbody tr:last-child td {
+        @apply border-b-0;
+    }
+    .table-item tbody tr:hover td {
+        @apply bg-blue-50/40;
+    }
+    /* Nomor baris: kecil dan tidak mencolok. */
+    .td-no {
+        @apply w-8 text-slate-400;
+    }
+    /* Kaki tabel (rekapan nota) sedikit lebih tegas dari baris biasa. */
+    .table-item tfoot td {
+        @apply pt-3 text-slate-600;
     }
 
     /* --- Tabel yang bisa digeser ke samping ---

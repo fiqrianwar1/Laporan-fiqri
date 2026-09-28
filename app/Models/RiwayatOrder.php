@@ -31,12 +31,28 @@ class RiwayatOrder extends Model
         'nomor_urut' => 'integer',
     ];
 
+    /**
+     * Total sebelum diskon (qty x harga satuan). Dipakai untuk menampilkan
+     * potongan dalam rupiah, bukan hanya persennya.
+     */
+    public function getTotalKotorAttribute()
+    {
+        return $this->qty * (float) $this->harga_satuan;
+    }
+
+    /**
+     * Potongan diskon dalam rupiah: total kotor x diskon persen.
+     * Dihitung dari angka mentah (bukan yang sudah dibulatkan) supaya
+     * nominalnya pas dengan selisih total kotor - total item.
+     */
+    public function getNominalDiskonAttribute()
+    {
+        return $this->total_kotor * ((float) $this->diskon_persen / 100);
+    }
+
     public function getTotalItemAttribute()
     {
-        $totalKotor = $this->qty * $this->harga_satuan;
-        $diskon = $totalKotor * ($this->diskon_persen / 100);
-
-        return $totalKotor - $diskon;
+        return $this->total_kotor - $this->nominal_diskon;
     }
 
     /**

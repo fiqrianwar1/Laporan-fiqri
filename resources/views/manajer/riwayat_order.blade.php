@@ -4,32 +4,33 @@
 
 @section('content')
     @php
-        $rupiah = fn ($angka) => 'Rp ' . number_format((float) $angka, 0, ',', '.');
+        use App\Support\Rupiah;
+
+        // Nilai tidak dibulatkan - sen aslinya tetap ditulis apa adanya.
+        $rupiah = fn ($angka) => Rupiah::format($angka);
     @endphp
 
     <div class="space-y-5">
         {{-- ================= HEADER ================= --}}
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div class="page-head">
             <div>
                 <div class="pill pill-emerald mb-2">
                     <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-600"></span>
                     Mode Pantau
                 </div>
-                <h1 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Riwayat Order (Pantau)</h1>
-                <p class="mt-1 text-sm text-slate-500">
-                    Periksa pemakaian anggaran belanja bahan & consumable. Tanpa aksi ubah data.
-                </p>
+                <h1 class="page-title">Riwayat Order (Pantau)</h1>
+                <p class="page-sub">Periksa pemakaian anggaran belanja bahan &amp; consumable. Tanpa aksi ubah data.</p>
             </div>
 
-            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-                <a href="{{ route('riwayat-order.pdf', request()->query()) }}" class="btn btn-outline flex-1 sm:flex-none">
+            <div class="page-actions">
+                <a href="{{ route('riwayat-order.pdf', request()->query()) }}" class="btn btn-outline btn-sm">
                     <svg class="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M12 10v6m0 0-3-3m3 3 3-3m2 8H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a2 2 0 0 1 1.414.586l5.414 5.414A2 2 0 0 1 19 10.414V19a2 2 0 0 1-2 2Z"/>
                     </svg>
                     Unduh PDF
                 </a>
-                <a href="{{ route('manajer.dashboard', request()->query()) }}" class="btn btn-outline flex-1 sm:flex-none">
+                <a href="{{ route('manajer.dashboard', request()->query()) }}" class="btn btn-outline btn-sm">
                     <svg class="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0 7-7m-7 7h18"/>
                     </svg>
@@ -48,7 +49,7 @@
                 <div class="relative z-10 flex items-start justify-between gap-4">
                     <div class="min-w-0">
                         <p class="text-[11px] font-bold uppercase tracking-wider text-indigo-200">Total Belanja Periode Ini</p>
-                        <p class="mt-2 truncate text-3xl font-bold tracking-tight sm:text-4xl">{{ $rupiah($totalBelanja) }}</p>
+                        <p class="angka mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">{{ $rupiah($totalBelanja) }}</p>
                         <p class="mt-1.5 text-xs text-indigo-100/85">
                             {{ number_format($jumlahNota) }} nota · {{ $jumlahBaris }} item · {{ $jumlahBarang }} jenis barang · sudah setelah diskon
                         </p>
@@ -87,7 +88,7 @@
                     </div>
                     <div class="min-w-0">
                         <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Rata-rata per Nota</p>
-                        <p class="truncate text-lg font-bold tracking-tight text-slate-900">{{ $rupiah($rataPerNota) }}</p>
+                        <p class="angka truncate text-lg font-extrabold tracking-tight text-slate-900">{{ $rupiah($rataPerNota) }}</p>
                         <p class="text-xs text-slate-400">Nilai belanja satu nota</p>
                     </div>
                 </div>
@@ -101,7 +102,7 @@
                     </div>
                     <div class="min-w-0">
                         <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Potongan Diskon</p>
-                        <p class="truncate text-lg font-bold tracking-tight text-emerald-600">{{ $rupiah($totalDiskon) }}</p>
+                        <p class="angka truncate text-lg font-extrabold tracking-tight text-emerald-600">{{ $rupiah($totalDiskon) }}</p>
                         <p class="text-xs text-slate-400">Hemat dari diskon pembelian</p>
                     </div>
                 </div>
@@ -139,8 +140,8 @@
                                     <span class="pill pill-emerald shrink-0">{{ $persen }}%</span>
                                 </div>
 
-                                <p class="mt-3 text-xl font-bold tracking-tight text-slate-900">
-                                    Rp {{ number_format($c['nilai'], 0, ',', '.') }}
+                                <p class="angka mt-3 text-xl font-extrabold tracking-tight text-slate-900">
+                                    {{ Rupiah::format($c['nilai']) }}
                                 </p>
 
                                 <div class="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
@@ -157,8 +158,8 @@
         <div class="card overflow-hidden">
             <div class="card-head flex">
                 <div class="flex items-center gap-3">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-white shadow-md shadow-slate-800/20">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="icon-badge bg-gradient-to-br from-slate-700 to-slate-900 text-white shadow-md shadow-slate-800/20">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M3 4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v2a1 1 0 0 1-.293.707L15 12.414V19l-6 3v-9.586L3.293 6.707A1 1 0 0 1 3 6V4Z"/>
                         </svg>
@@ -170,8 +171,8 @@
                 </div>
             </div>
 
-            <form method="GET" action="{{ route('manajer.riwayat-order') }}"
-                  class="grid gap-4 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-[minmax(0,180px)_130px_minmax(0,240px)_auto_auto] lg:items-end">
+            <div class="filter-panel-body">
+            <form method="GET" action="{{ route('manajer.riwayat-order') }}" class="filter-baris items-end">
                 <div>
                     <label for="bulan" class="label">Bulan</label>
                     <div class="relative">
@@ -217,17 +218,20 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-dark h-[46px]">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/>
-                    </svg>
-                    Terapkan
-                </button>
+                <div class="filter-aksi flex items-center gap-2">
+                    <button type="submit" class="btn btn-dark h-[42px] flex-1 min-w-0">
+                        <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/>
+                        </svg>
+                        <span class="truncate">Terapkan</span>
+                    </button>
 
-                @if ($bulan || $tahun || $cabang)
-                    <a href="{{ route('manajer.riwayat-order') }}" class="btn btn-ghost h-[46px]">Reset</a>
-                @endif
+                    @if ($bulan || $tahun || $cabang)
+                        <a href="{{ route('manajer.riwayat-order') }}" class="btn btn-ghost h-[42px] shrink-0">Reset</a>
+                    @endif
+                </div>
             </form>
+            </div>
         </div>
 
         {{-- ================= BARANG TERMAHAL ================= --}}
@@ -259,7 +263,7 @@
                                 <p class="truncate text-[11px] text-slate-500">
                                     {{ $order->no_bukti_faktur }} · {{ $order->qty }} {{ $order->satuan }}
                                     @if ($order->diskon_persen > 0)
-                                        · diskon {{ number_format($order->diskon_persen, 2) }}%
+                                        · diskon {{ number_format($order->diskon_persen, 2, ',', '.') }}%
                                     @endif
                                 </p>
                             </div>
@@ -309,6 +313,7 @@
                             'labelHarga' => 'Harga',
                             'labelQty' => 'qty',
                             'kolomDiskon' => true,
+                            'kolomNominalDiskon' => true,
                         ])
                     @endforeach
                 </div>

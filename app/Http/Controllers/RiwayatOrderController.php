@@ -283,22 +283,30 @@ class RiwayatOrderController extends Controller
         // itemnya supaya nota tidak terpecah dan mudah dicocokkan dengan faktur.
         $notas = $this->groupedNotas($orders);
 
+        // Nota dipisah per cabang supaya Banjarmasin & Palangka tidak tercampur
+        // dalam satu deretan, tapi totalnya tetap dijumlah bersama di akhir.
+        $bagian = Cabang::kelompokkanNota($notas);
+
         $bulan = $request->input('bulan');
         $tahun = $request->input('tahun');
+        $cabang = $request->input('cabang');
 
         $namaBulan = $bulan
             ? \Illuminate\Support\Carbon::create()->month((int) $bulan)->translatedFormat('F')
             : null;
 
-        $pdf = Pdf::loadView('riwayat_order.pdf', compact(
-            'notas', 'totalBelanja', 'namaBulan', 'tahun'
-        ))->setPaper('a4', 'landscape');
+        // Halaman preview butuh daftar transaksi mentah untuk ringkasan
+        // (jumlah transaksi & total qty), jadi $orders ikut dikirim.
+        $data = compact(
+            'notas', 'bagian', 'orders', 'totalBelanja',
+            'namaBulan', 'tahun', 'cabang'
+        );
+
+        $pdf = Pdf::loadView('riwayat_order.pdf', $data)->setPaper('a4', 'landscape');
 
         $namaFile = 'riwayat-order-' . ($namaBulan ? strtolower($namaBulan) . '-' . $tahun : now()->format('Y-m-d')) . '.pdf';
 
-        // Halaman preview butuh daftar transaksi mentah untuk ringkasan
-        // (jumlah transaksi & total qty), jadi $orders ikut dikirim.
-        return [$pdf, $namaFile, compact('notas', 'orders', 'totalBelanja', 'namaBulan', 'tahun')];
+        return [$pdf, $namaFile, $data];
     }
 
     /**

@@ -11,27 +11,25 @@
 
     <div class="space-y-5">
         {{-- ================= HEADER PENGUSAHA ================= --}}
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div class="page-head">
             <div>
                 <div class="pill pill-emerald mb-2">
                     <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-600"></span>
                     Mode Pengawasan
                 </div>
-                <h1 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Dashboard Manajer</h1>
-                <p class="mt-1 text-sm text-slate-500">
-                    Ringkasan biaya oplosan & belanja bahan untuk pengambilan keputusan.
-                </p>
+                <h1 class="page-title">Dashboard Manajer</h1>
+                <p class="page-sub">Ringkasan biaya oplosan &amp; belanja bahan untuk pengambilan keputusan.</p>
             </div>
 
-            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-                <a href="{{ route('manajer.riwayat-order', request()->query()) }}" class="btn btn-outline flex-1 sm:flex-none">
+            <div class="page-actions">
+                <a href="{{ route('manajer.riwayat-order', request()->query()) }}" class="btn btn-outline btn-sm">
                     <svg class="h-4 w-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                     </svg>
                     Riwayat Order
                 </a>
-                <a href="{{ route('manajer.laporan-oplosan', request()->query()) }}" class="btn btn-outline flex-1 sm:flex-none">
+                <a href="{{ route('manajer.laporan-oplosan', request()->query()) }}" class="btn btn-outline btn-sm">
                     <svg class="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M9 3v2m6-2v2M4 8h16M6 6h12a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2z"/>
@@ -82,17 +80,18 @@
             @endphp
 
             @foreach ($kpi as $kartu)
-                <div class="card card-hover group relative overflow-hidden p-5">
+                {{-- Ukuran kartu diatur .stat-card (lihat app.css). --}}
+                <div class="stat-card">
                     <div class="absolute -right-4 -top-4 h-24 w-24 rounded-full {{ $kartu['glow'] }} blur-2xl transition-all group-hover:scale-125"></div>
-                    <div class="relative z-10 flex items-start gap-4">
-                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br {{ $kartu['warna'] }} text-white shadow-lg">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="relative z-10 flex items-start gap-3.5">
+                        <div class="stat-icon bg-gradient-to-br {{ $kartu['warna'] }}">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $kartu['icon'] }}"/>
                             </svg>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">{{ $kartu['label'] }}</p>
-                            <p class="mt-1 truncate text-2xl font-bold tracking-tight text-slate-900">{{ $kartu['nilai'] }}</p>
+                            <p class="stat-label">{{ $kartu['label'] }}</p>
+                            <p class="angka-kartu mt-1">{{ $kartu['nilai'] }}</p>
                             <p class="mt-0.5 text-xs text-slate-500">{{ $kartu['sub'] }}</p>
                         </div>
                     </div>
@@ -104,8 +103,8 @@
         <div class="card overflow-hidden">
             <div class="card-head flex">
                 <div class="flex items-center gap-3">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-white shadow-md shadow-slate-800/20">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="icon-badge bg-gradient-to-br from-slate-700 to-slate-900 text-white shadow-md shadow-slate-800/20">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M3 4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v2a1 1 0 0 1-.293.707L15 12.414V19l-6 3v-9.586L3.293 6.707A1 1 0 0 1 3 6V4Z"/>
                         </svg>
@@ -118,8 +117,9 @@
                 <span class="pill pill-slate">{{ $totalOplosan + $totalOrder }} Catatan</span>
             </div>
 
+            <div class="filter-panel-body">
             <form method="GET" action="{{ route('manajer.dashboard') }}"
-                  class="grid max-w-2xl gap-4 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-[minmax(0,200px)_140px_auto_auto] lg:items-end">
+                  class="filter-baris items-end">
                 <div>
                     <label for="bulan" class="label">Bulan</label>
                     <div class="relative">
@@ -150,17 +150,22 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-dark h-[46px]">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/>
-                    </svg>
-                    Terapkan
-                </button>
+                {{-- Tombol aksi dibuat seperti halaman lain supaya
+                     posisinya sejajar dengan kolom isian. --}}
+                <div class="filter-aksi flex items-center gap-2">
+                    <button type="submit" class="btn btn-dark h-[42px] flex-1 min-w-0">
+                        <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/>
+                        </svg>
+                        <span class="truncate">Terapkan</span>
+                    </button>
 
-                @if ($bulan || $tahun)
-                    <a href="{{ route('manajer.dashboard') }}" class="btn btn-ghost h-[46px]">Reset</a>
-                @endif
+                    @if ($bulan || $tahun)
+                        <a href="{{ route('manajer.dashboard') }}" class="btn btn-ghost h-[42px] shrink-0">Reset</a>
+                    @endif
+                </div>
             </form>
+            </div>
         </div>
 
         {{-- ================= PERLU DIPERIKSA ================= --}}
@@ -209,14 +214,14 @@
                                     </svg>
                                 </span>
                                 <div class="min-w-0 flex-1">
-                                    <p class="truncate text-sm font-bold text-slate-800">{{ $item->no_plat }}</p>
+                                    <p class="truncate text-sm font-bold text-slate-800">{{ App\Support\Tanggal::panjang($item->tanggal) }}</p>
                                     <p class="truncate text-[11px] text-slate-500">
-                                        {{ $item->kode_warna_unit }} · {{ $item->rincian_bahan }}
+                                        {{ $item->kode_warna_unit }} · {{ $item->no_plat }} · {{ $item->rincian_bahan }}
                                     </p>
                                 </div>
                                 <div class="shrink-0 text-right">
                                     <p class="text-sm font-bold text-rose-600">{{ $rupiah($item->harga_nota) }}</p>
-                                    <p class="text-[11px] text-slate-500">{{ $item->tanggal?->format('d/m/Y') }}</p>
+                                    <p class="text-[11px] text-slate-500">{{ $item->cabang_area }}</p>
                                 </div>
                             </li>
                         @endforeach
@@ -425,7 +430,7 @@
                                     </div>
                                 </div>
                                 <div class="shrink-0 text-right">
-                                    <p class="text-sm font-bold text-slate-900">{{ $rupiah($barang['belanja']) }}</p>
+                                    <p class="angka-sel text-sm">{{ $rupiah($barang['belanja']) }}</p>
                                     <p class="text-[11px] text-slate-500">{{ number_format($barang['qty']) }} unit</p>
                                 </div>
                             </li>
@@ -473,7 +478,7 @@
                             <div class="shrink-0 text-right">
                                 <p class="text-sm font-bold text-slate-900">{{ $item['nilai'] }}</p>
                                 <p class="text-[11px] text-slate-500">
-                                    {{ $oplosan ? 'Oplosan' : 'Order' }} · {{ $item['tanggal']?->format('d/m/Y') }}
+                                    {{ $oplosan ? 'Oplosan' : 'Order' }} · {{ \App\Support\Tanggal::panjang($item['tanggal']) }}
                                 </p>
                             </div>
                         </li>

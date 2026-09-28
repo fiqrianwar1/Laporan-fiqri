@@ -49,6 +49,59 @@
         </div>
     </div>
 
+    {{-- ================= FILTER PERIODE =================
+         Ganti bulan di sini langsung membangun ulang preview, jadi tidak
+         perlu balik ke halaman daftar cuma buat ganti periode cetak. --}}
+    @php
+        use App\Support\Cabang;
+    @endphp
+    <div class="rounded-2xl border-white/50 bg-white/70 p-4 shadow-sm backdrop-blur-xl sm:p-5">
+        <form method="GET" action="{{ route('laporan-oplosan.preview') }}"
+              class="grid grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+                <label for="bulan" class="label">Bulan</label>
+                <div class="relative">
+                    <select id="bulan" name="bulan" class="input appearance-none pr-10">
+                        <option value="">Semua Bulan</option>
+                        @foreach (['01'=>'Januari','02'=>'Februari','03'=>'Maret','04'=>'April','05'=>'Mei','06'=>'Juni','07'=>'Juli','08'=>'Agustus','09'=>'September','10'=>'Oktober','11'=>'November','12'=>'Desember'] as $val => $label)
+                            <option value="{{ $val }}" {{ (string) request('bulan') === $val ? 'selected' : '' }}>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label for="tahun" class="label">Tahun</label>
+                <input id="tahun" type="number" name="tahun" value="{{ request('tahun') }}" min="2000" max="2100" placeholder="Semua" class="input">
+            </div>
+
+            <div>
+                <label for="cabang" class="label">Cabang / Area</label>
+                <div class="relative">
+                    <select id="cabang" name="cabang" class="input appearance-none pr-10">
+                        <option value="">Semua Cabang</option>
+                        @foreach (Cabang::daftar() as $c)
+                            <option value="{{ $c }}" {{ request('cabang') === $c ? 'selected' : '' }}>{{ $c }}</option>
+                        @endforeach
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button type="submit" class="btn btn-dark h-[42px] flex-1">Terapkan</button>
+                @if (request('bulan') || request('tahun') || request('cabang'))
+                    <a href="{{ route('laporan-oplosan.preview') }}" class="btn btn-ghost h-[42px] shrink-0">Reset</a>
+                @endif
+            </div>
+        </form>
+    </div>
+
     {{-- Ringkasan singkat --}}
     <div class="grid gap-4 sm:grid-cols-3">
         <div class="rounded-2xl border-white/50 bg-white/60 backdrop-blur-xl p-5 shadow-sm">

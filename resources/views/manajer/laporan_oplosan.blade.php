@@ -4,38 +4,39 @@
 
 @section('content')
     @php
-        $rupiah = fn ($angka) => 'Rp ' . number_format((float) $angka, 0, ',', '.');
+        use App\Support\Rupiah;
+
+        // Nilai tidak dibulatkan - sen aslinya tetap ditulis apa adanya.
+        $rupiah = fn ($angka) => Rupiah::format($angka);
     @endphp
 
     <div class="space-y-5">
         {{-- ================= HEADER ================= --}}
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div class="page-head">
             <div>
                 <div class="pill pill-emerald mb-2">
                     <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-600"></span>
                     Mode Pantau
                 </div>
-                <h1 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Laporan Oplosan (Pantau)</h1>
-                <p class="mt-1 text-sm text-slate-500">
-                    Periksa pemakaian bahan tinting per unit. Tanpa aksi ubah data.
-                </p>
+                <h1 class="page-title">Laporan Oplosan (Pantau)</h1>
+                <p class="page-sub">Periksa pemakaian bahan tinting per unit. Tanpa aksi ubah data.</p>
             </div>
 
-            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-                <span class="inline-flex items-center gap-2 rounded-xl bg-white/70 px-4 py-2.5 text-sm font-semibold text-slate-700 ring-1 ring-slate-200/70">
+            <div class="page-actions">
+                <span class="inline-flex items-center gap-2 rounded-xl border border-slate-200/70 bg-white/80 px-3.5 py-2 text-xs font-semibold text-slate-700">
                     <svg class="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M4 8h16M6 6h12a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2z"/>
                     </svg>
-                    {{ number_format($jumlahNota) }} nota · Rp {{ number_format($totalNilaiNota, 0, ',', '.') }}
+                    {{ number_format($jumlahNota) }} nota · {{ Rupiah::format($totalNilaiNota) }}
                 </span>
-                <a href="{{ route('laporan-oplosan.pdf', request()->query()) }}" class="btn btn-outline flex-1 sm:flex-none">
+                <a href="{{ route('laporan-oplosan.pdf', request()->query()) }}" class="btn btn-outline btn-sm">
                     <svg class="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M12 10v6m0 0-3-3m3 3 3-3m2 8H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a2 2 0 0 1 1.414.586l5.414 5.414A2 2 0 0 1 19 10.414V19a2 2 0 0 1-2 2Z"/>
                     </svg>
                     Unduh PDF
                 </a>
-                <a href="{{ route('manajer.dashboard', request()->query()) }}" class="btn btn-outline flex-1 sm:flex-none">
+                <a href="{{ route('manajer.dashboard', request()->query()) }}" class="btn btn-outline btn-sm">
                     <svg class="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0 7-7m-7 7h18"/>
                     </svg>
@@ -85,17 +86,18 @@
             @endphp
 
             @foreach ($statistik as $kartu)
-                <div class="card card-hover group relative overflow-hidden p-5">
+                {{-- Ukuran kartu diatur .stat-card (lihat app.css). --}}
+                <div class="stat-card">
                     <div class="absolute -right-4 -top-4 h-24 w-24 rounded-full {{ $kartu['glow'] }} blur-2xl transition-all group-hover:scale-125"></div>
-                    <div class="relative z-10 flex items-start gap-4">
-                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br {{ $kartu['warna'] }} text-white shadow-lg">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="relative z-10 flex items-start gap-3.5">
+                        <div class="stat-icon bg-gradient-to-br {{ $kartu['warna'] }}">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $kartu['icon'] }}"/>
                             </svg>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">{{ $kartu['label'] }}</p>
-                            <p class="mt-1 truncate text-2xl font-bold tracking-tight text-slate-900">{{ $kartu['nilai'] }}</p>
+                            <p class="stat-label">{{ $kartu['label'] }}</p>
+                            <p class="angka-kartu mt-1">{{ $kartu['nilai'] }}</p>
                             <p class="mt-0.5 text-xs text-slate-500">{{ $kartu['sub'] }}</p>
                         </div>
                     </div>
@@ -179,8 +181,8 @@
                                     <span class="pill pill-emerald shrink-0">{{ $persen }}%</span>
                                 </div>
 
-                                <p class="mt-3 text-xl font-bold tracking-tight text-slate-900">
-                                    Rp {{ number_format($c['nilai'], 0, ',', '.') }}
+                                <p class="angka mt-3 text-xl font-extrabold tracking-tight text-slate-900">
+                                    {{ Rupiah::format($c['nilai']) }}
                                 </p>
 
                                 <div class="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
@@ -197,8 +199,8 @@
         <div class="card overflow-hidden">
             <div class="card-head flex">
                 <div class="flex items-center gap-3">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-white shadow-md shadow-slate-800/20">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="icon-badge bg-gradient-to-br from-slate-700 to-slate-900 text-white shadow-md shadow-slate-800/20">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M3 4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v2a1 1 0 0 1-.293.707L15 12.414V19l-6 3v-9.586L3.293 6.707A1 1 0 0 1 3 6V4Z"/>
                         </svg>
@@ -210,8 +212,8 @@
                 </div>
             </div>
 
-            <form method="GET" action="{{ route('manajer.laporan-oplosan') }}"
-                  class="grid gap-4 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-[minmax(0,180px)_130px_minmax(0,240px)_auto_auto] lg:items-end">
+            <div class="filter-panel-body">
+            <form method="GET" action="{{ route('manajer.laporan-oplosan') }}" class="filter-baris items-end">
                 <div>
                     <label for="bulan" class="label">Bulan</label>
                     <div class="relative">
@@ -257,17 +259,20 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-dark h-[46px]">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/>
-                    </svg>
-                    Terapkan
-                </button>
+                <div class="filter-aksi flex items-center gap-2">
+                    <button type="submit" class="btn btn-dark h-[42px] flex-1 min-w-0">
+                        <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/>
+                        </svg>
+                        <span class="truncate">Terapkan</span>
+                    </button>
 
-                @if ($bulan || $tahun || $cabang)
-                    <a href="{{ route('manajer.laporan-oplosan') }}" class="btn btn-ghost h-[46px]">Reset</a>
-                @endif
+                    @if ($bulan || $tahun || $cabang)
+                        <a href="{{ route('manajer.laporan-oplosan') }}" class="btn btn-ghost h-[42px] shrink-0">Reset</a>
+                    @endif
+                </div>
             </form>
+            </div>
         </div>
 
         {{-- ================= DAFTAR LAPORAN ================= --}}

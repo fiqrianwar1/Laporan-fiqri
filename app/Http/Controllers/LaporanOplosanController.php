@@ -262,22 +262,28 @@ class LaporanOplosanController extends Controller
         // Di PDF, satu nota jadi satu blok berisi semua itemnya.
         $notas = $this->groupedNotas($laporans);
 
+        // Nota dipisah per cabang supaya Banjarmasin & Palangka tidak tercampur
+        // dalam satu deretan, tapi totalnya tetap dijumlah bersama di akhir.
+        $bagian = Cabang::kelompokkanNota($notas);
+
         $bulan = $request->input('bulan');
         $tahun = $request->input('tahun');
+        $cabang = $request->input('cabang');
 
         $namaBulan = $bulan
             ? \Illuminate\Support\Carbon::create()->month((int) $bulan)->translatedFormat('F')
             : null;
 
-        $pdf = Pdf::loadView('laporan_oplosan.pdf', compact(
-            'notas', 'totalOplosan', 'totalCc', 'totalBiaya', 'namaBulan', 'tahun'
-        ))->setPaper('a4', 'landscape');
+        $data = compact(
+            'notas', 'bagian', 'totalOplosan', 'totalCc', 'totalBiaya',
+            'namaBulan', 'tahun', 'cabang'
+        );
+
+        $pdf = Pdf::loadView('laporan_oplosan.pdf', $data)->setPaper('a4', 'landscape');
 
         $namaFile = 'laporan-oplosan-' . ($namaBulan ? strtolower($namaBulan) . '-' . $tahun : now()->format('Y-m-d')) . '.pdf';
 
-        return [$pdf, $namaFile, compact(
-            'notas', 'totalOplosan', 'totalCc', 'totalBiaya', 'namaBulan', 'tahun'
-        )];
+        return [$pdf, $namaFile, $data];
     }
 
     /**

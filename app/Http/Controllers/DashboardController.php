@@ -101,6 +101,7 @@ class DashboardController extends Controller
         return view('dashboard', [
             'bulan'            => $bulan,
             'tahun'            => $tahun,
+            'semuaPeriode'     => $semuaPeriode,
             'cabang'           => $cabang,
             'daftarTahun'      => $daftarTahun,
             'perCabang'        => $perCabang,

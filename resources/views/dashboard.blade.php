@@ -4,14 +4,20 @@
 
 @php
     use App\Support\Cabang;
+    use App\Support\Rupiah;
 @endphp
 @section('content')
     @php
         $namaBulan = ['01'=>'Januari','02'=>'Februari','03'=>'Maret','04'=>'April','05'=>'Mei','06'=>'Juni','07'=>'Juli','08'=>'Agustus','09'=>'September','10'=>'Oktober','11'=>'November','12'=>'Desember'];
+        // Periode default dashboard adalah tahun berjalan, jadi kalau tidak
+        // ada bulan dipilih labelnya jangan bilang "Semua periode" - itu
+        // keliru dan bikin angka di layar terlihat tidak cocok.
         if ($bulan) {
             $labelPeriode = \Illuminate\Support\Carbon::create(null, (int) $bulan, 1)->translatedFormat('F') . ' / ' . $tahun;
+        } elseif ($semuaPeriode ?? false) {
+            $labelPeriode = 'Semua periode';
         } else {
-            $labelPeriode = $tahun ? 'Tahun ' . $tahun : 'Semua Periode';
+            $labelPeriode = 'Tahun ' . $tahun;
         }
         $labelPeriode .= $cabang ? ' · ' . $cabang : '';
 
@@ -22,28 +28,28 @@
 
     <div class="space-y-5">
         {{-- ================= HEADER HALAMAN ================= --}}
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div class="page-head">
             <div>
                 <div class="pill pill-blue mb-2">
                     <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-600"></span>
                     Ringkasan Statistik
                 </div>
-                <h1 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Dashboard</h1>
-                <p class="mt-1 text-sm text-slate-500">
-                    Pantau rekap oplosan & belanja bahan dalam satu tampilan.
+                <h1 class="page-title">Dashboard</h1>
+                <p class="page-sub">
+                    Pantau rekap oplosan &amp; belanja bahan dalam satu tampilan.
                     <span class="font-semibold text-slate-600">Periode: {{ $labelPeriode }}</span>
                 </p>
             </div>
 
-            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-                <a href="{{ route('laporan-oplosan.index') }}" class="btn btn-outline flex-1 sm:flex-none">
+            <div class="page-actions">
+                <a href="{{ route('laporan-oplosan.index') }}" class="btn btn-outline btn-sm">
                     <svg class="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M9 3v2m6-2v2M4 8h16M6 6h12a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2z"/>
                     </svg>
                     Laporan Oplosan
                 </a>
-                <a href="{{ route('riwayat-order.index') }}" class="btn btn-outline flex-1 sm:flex-none">
+                <a href="{{ route('riwayat-order.index') }}" class="btn btn-outline btn-sm">
                     <svg class="h-4 w-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
@@ -51,7 +57,7 @@
                     Riwayat Order
                 </a>
                 @if (auth()->user()->role === 'tinter')
-                    <a href="{{ route('riwayat-order.create') }}" class="btn btn-primary w-full sm:w-auto">
+                    <a href="{{ route('riwayat-order.create') }}" class="btn btn-primary btn-sm">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                         </svg>
@@ -68,7 +74,7 @@
                     [
                         'label' => 'Total Laporan Oplosan',
                         'nilai' => number_format($totalOplosan),
-                        'sub'   => 'Rp ' . number_format($totalBiayaOplosan, 0, ',', '.') . ' total biaya',
+                        'sub'   => Rupiah::format($totalBiayaOplosan) . ' total biaya',
                         'warna' => 'from-blue-500 to-blue-600',
                         'glow'  => 'bg-blue-500/10 group-hover:bg-blue-500/20',
                         'icon'  => 'M9 17V7m6 10V7M4 4h16v16H4z',
@@ -76,7 +82,7 @@
                     [
                         'label' => 'Total Qty Oplosan',
                         'nilai' => number_format($totalCc) . ' CC',
-                        'sub'   => 'Rata-rata Rp ' . number_format($rataOplosan, 0, ',', '.') . ' / laporan',
+                        'sub'   => 'Rata-rata ' . Rupiah::format($rataOplosan) . ' / laporan',
                         'warna' => 'from-amber-400 to-orange-500',
                         'glow'  => 'bg-amber-500/10 group-hover:bg-amber-500/20',
                         'icon'  => 'M5 13l4 4L19 7',
@@ -91,8 +97,8 @@
                     ],
                     [
                         'label' => 'Total Belanja',
-                        'nilai' => 'Rp ' . number_format($totalBelanja, 0, ',', '.'),
-                        'sub'   => 'Rata-rata Rp ' . number_format($rataOrder, 0, ',', '.') . ' / item',
+                        'nilai' => Rupiah::format($totalBelanja),
+                        'sub'   => 'Rata-rata ' . Rupiah::format($rataOrder) . ' / item',
                         'warna' => 'from-emerald-400 to-emerald-600',
                         'glow'  => 'bg-emerald-500/10 group-hover:bg-emerald-500/20',
                         'icon'  => 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 10v-2',
@@ -101,17 +107,18 @@
             @endphp
 
             @foreach ($kartuUtama as $kartu)
-                <div class="card card-hover group relative overflow-hidden p-5">
+                {{-- Ukuran kartu diatur .stat-card (lihat app.css). --}}
+        <div class="stat-card">
                     <div class="absolute -right-4 -top-4 h-24 w-24 rounded-full {{ $kartu['glow'] }} blur-2xl transition-all"></div>
-                    <div class="relative z-10 flex items-start gap-4">
-                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br {{ $kartu['warna'] }} text-white shadow-lg">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="relative z-10 flex items-start gap-3.5">
+                        <div class="stat-icon bg-gradient-to-br {{ $kartu['warna'] }}">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $kartu['icon'] }}"/>
                             </svg>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">{{ $kartu['label'] }}</p>
-                            <p class="mt-1 truncate text-2xl font-bold tracking-tight text-slate-900">{{ $kartu['nilai'] }}</p>
+                            <p class="stat-label">{{ $kartu['label'] }}</p>
+                            <p class="angka-kartu mt-1">{{ $kartu['nilai'] }}</p>
                             <p class="mt-0.5 truncate text-xs text-slate-500">{{ $kartu['sub'] }}</p>
                         </div>
                     </div>
@@ -120,55 +127,49 @@
         </div>
 
         {{-- ================= FILTER PERIODE ================= --}}
-        {{-- Ikut alur halaman (tanpa sticky), disamakan dengan halaman
-             manajer: panel menempel bikin konten di bawahnya tertutup. --}}
-        <div class="filter-sticky">
-            <div class="flex flex-col gap-3 p-3 sm:p-4 xl:flex-row xl:items-center xl:gap-4">
-                {{-- Judul + jumlah data --}}
-                <div class="flex shrink-0 items-center gap-3">
-                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-800 text-white shadow-md shadow-slate-800/20">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M3 4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v2a1 1 0 0 1-.293.707L15 12.414V19l-6 3v-9.586L3.293 6.707A1 1 0 0 1 3 6V4Z"/>
-                        </svg>
-                    </div>
-                    <div class="min-w-0">
-                        <p class="text-sm font-bold leading-tight text-slate-900">Filter Periode</p>
-                        <p class="text-[11px] leading-tight text-slate-500">
-                            {{ number_format($totalKeseluruhan) }} data
-                            @if ($cabang)
-                                &middot; {{ $cabang }}
-                            @endif
-                        </p>
-                    </div>
+        @php
+            $chipFilter = function (array $query) use ($bulan, $tahun, $cabang) {
+                $query['cabang'] = $cabang;
+
+                $sama = (string) ($query['bulan'] ?? '') === (string) ($bulan ?? '')
+                    && (string) ($query['tahun'] ?? '') === (string) ($tahun ?? '');
+
+                return ['aktif' => $sama, 'url' => route('dashboard', array_filter($query, fn ($v) => filled($v)))];
+            };
+
+            $chips = [
+                ['label' => 'Bulan ini', ...$chipFilter(['bulan' => now()->month, 'tahun' => now()->year])],
+                ['label' => 'Tahun ' . now()->year, ...$chipFilter(['tahun' => now()->year])],
+                ['label' => 'Semua', ...$chipFilter([])],
+            ];
+        @endphp
+        {{-- Panel filter: satu bentuk dengan halaman daftar lain -
+             kepala panel berisi judul + jumlah data, isi panel berisi
+             chip periode cepat dan form filter. --}}
+        <div class="filter-panel">
+            <div class="filter-panel-head">
+                <div class="icon-badge bg-gradient-to-br from-slate-700 to-slate-900 text-white shadow-md shadow-slate-800/20">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M3 4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v2a1 1 0 0 1-.293.707L15 12.414V19l-6 3v-9.586L3.293 6.707A1 1 0 0 1 3 6V4Z"/>
+                    </svg>
                 </div>
-
-                {{-- Chip periode cepat --}}
-                @php
-                    $chipFilter = function (array $query) use ($bulan, $tahun, $cabang) {
-                        $query['cabang'] = $cabang;
-
-                        $sama = (string) ($query['bulan'] ?? '') === (string) ($bulan ?? '')
-                            && (string) ($query['tahun'] ?? '') === (string) ($tahun ?? '');
-
-                        return ['aktif' => $sama, 'url' => route('dashboard', array_filter($query, fn ($v) => filled($v)))];
-                    };
-
-                    $chips = [
-                        ['label' => 'Bulan ini', ...$chipFilter(['bulan' => now()->month, 'tahun' => now()->year])],
-                        ['label' => 'Tahun ' . now()->year, ...$chipFilter(['tahun' => now()->year])],
-                        ['label' => 'Semua', ...$chipFilter([])],
-                    ];
-                @endphp
+                <div class="min-w-0 flex-1">
+                    <p class="text-sm font-bold leading-tight text-slate-900">Filter Periode</p>
+                    <p class="text-[11px] leading-tight text-slate-500">
+                        {{ number_format($totalKeseluruhan) }} data &middot; {{ $labelPeriode }}
+                    </p>
+                </div>
                 <div class="flex shrink-0 flex-wrap items-center gap-2">
                     @foreach ($chips as $chip)
                         <a href="{{ $chip['url'] }}" class="chip {{ $chip['aktif'] ? 'active' : '' }}">{{ $chip['label'] }}</a>
                     @endforeach
                 </div>
+            </div>
 
-                {{-- Form filter: satu baris di layar lebar --}}
-                <form method="GET" action="{{ route('dashboard') }}"
-                      class="filter-baris flex-1 items-end">
+            <div class="filter-panel-body">
+                {{-- Form filter: satu baris di layar lebar. --}}
+                <form method="GET" action="{{ route('dashboard') }}" class="filter-baris items-end">
                     <div>
                         <label for="bulan" class="label">Bulan</label>
                         <div class="relative">
@@ -225,13 +226,12 @@
                         @if ($bulan || $tahun || $cabang)
                             <a href="{{ route('dashboard') }}" class="btn btn-ghost h-[42px] shrink-0 px-3">Reset</a>
                         @endif
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                </form>
-            </div>
-        </div>
 
-
-        {{-- ================= TREN + BULAN INI ================= --}}
+                    {{-- ================= TREN + BULAN INI ================= --}}
         <div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
             {{-- Grafik tren 6 bulan (CSS bar, tanpa library) --}}
             <div class="card overflow-hidden xl:col-span-2">
@@ -247,8 +247,7 @@
                             <p class="card-sub">Jumlah laporan oplosan vs item order per bulan.</p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-3 text-[11px] font-semibold text-slate-500">
-                        <span class="inline-flex items-center gap-1.5">
+                    <div class="flex items-center gap-3 text-[11px] font-semibold text-slate-500">                        <span class="inline-flex items-center gap-1.5">
                             <span class="h-2.5 w-2.5 rounded-full bg-blue-500"></span> Oplosan
                         </span>
                         <span class="inline-flex items-center gap-1.5">
@@ -274,7 +273,7 @@
                                     <div class="relative flex h-full w-1/2 max-w-[26px] items-end">
                                         <div class="w-full rounded-t-lg bg-gradient-to-t from-indigo-500 to-indigo-300 transition-all duration-500"
                                              style="height: {{ max($tinggiOrder, 2) }}%"
-                                             title="{{ $baris['label'] }} · {{ $baris['order'] }} item order (Rp {{ number_format($baris['belanja'], 0, ',', '.') }})"></div>
+                                             title="{{ $baris['label'] }} · {{ $baris['order'] }} item order ({{ Rupiah::format($baris['belanja']) }})"></div>
                                     </div>
                                 </div>
                                 <p class="text-[11px] font-semibold text-slate-500">{{ $baris['label'] }}</p>
@@ -303,7 +302,7 @@
                 <div class="space-y-2.5 p-4 sm:p-5">
                     @php
                         $ringkas = [
-                            ['label' => 'Belanja bulan ini', 'nilai' => 'Rp ' . number_format($ringkasBulanIni['belanja'], 0, ',', '.'), 'warna' => 'text-emerald-600'],
+                            ['label' => 'Belanja bulan ini', 'nilai' => Rupiah::format($ringkasBulanIni['belanja']), 'warna' => 'text-emerald-600'],
                             ['label' => 'Item order masuk', 'nilai' => number_format($ringkasBulanIni['order']) . ' item', 'warna' => 'text-indigo-600'],
                             ['label' => 'Laporan oplosan', 'nilai' => number_format($ringkasBulanIni['oplosan']) . ' laporan', 'warna' => 'text-blue-600'],
                             ['label' => 'Total qty oplosan', 'nilai' => number_format($ringkasBulanIni['cc']) . ' CC', 'warna' => 'text-amber-600'],
@@ -365,8 +364,7 @@
                                 </div>
                                 <div class="shrink-0 text-right">
                                     <p class="text-sm font-bold text-slate-900">{{ number_format($barang['qty']) }} <span class="text-[11px] font-semibold text-slate-400">{{ $barang['satuan'] }}</span></p>
-                                    <p class="text-[11px] text-slate-500">Rp {{ number_format($barang['belanja'], 0, ',', '.') }}</p>
-                                </div>
+                                    <p class="text-[11px] text-slate-500">{{ Rupiah::format($barang['belanja']) }}</p>                                </div>
                             </li>
                         @endforeach
                     </ul>
@@ -411,8 +409,7 @@
                                 </div>
                                 <div class="shrink-0 text-right">
                                     <p class="text-sm font-bold text-slate-900">{{ number_format($warna['cc']) }} <span class="text-[11px] font-semibold text-slate-400">CC</span></p>
-                                    <p class="text-[11px] text-slate-500">{{ number_format($warna['unit']) }} unit · Rp {{ number_format($warna['biaya'], 0, ',', '.') }}</p>
-                                </div>
+                                    <p class="text-[11px] text-slate-500">{{ number_format($warna['unit']) }} unit · {{ Rupiah::format($warna['biaya']) }}</p>                                </div>
                             </li>
                         @endforeach
                     </ul>
@@ -472,8 +469,7 @@
                                     <p class="text-[10px] font-bold uppercase tracking-wider text-blue-700">Oplosan</p>                                    <p class="mt-1 text-lg font-bold tracking-tight text-slate-900">
                                         {{ number_format($c['nota_oplosan']) }} <span class="text-[11px] font-semibold text-slate-400">nota</span>
                                     </p>
-                                    <p class="text-[11px] font-semibold text-blue-700">Rp {{ number_format($c['nilai_oplosan'], 0, ',', '.') }}</p>
-                                    <p class="mt-0.5 text-[10px] text-slate-500">{{ number_format($c['cc_oplosan']) }} CC</p>
+                                    <p class="text-[11px] font-semibold text-blue-700">{{ Rupiah::format($c['nilai_oplosan']) }}</p>                                    <p class="mt-0.5 text-[10px] text-slate-500">{{ number_format($c['cc_oplosan']) }} CC</p>
                                 </div>
 
                                 {{-- Kolom Order --}}
@@ -482,15 +478,15 @@
                                     <p class="mt-1 text-lg font-bold tracking-tight text-slate-900">
                                         {{ number_format($c['nota_order']) }} <span class="text-[11px] font-semibold text-slate-400">nota</span>
                                     </p>
-                                    <p class="text-[11px] font-semibold text-indigo-700">Rp {{ number_format($c['nilai_order'], 0, ',', '.') }}</p>
+                                    <p class="text-[11px] font-semibold text-indigo-700">{{ Rupiah::format($c['nilai_order']) }}</p>
                                     <p class="mt-0.5 text-[10px] text-slate-500">Belanja bahan</p>
                                 </div>
                             </div>
 
                             <div class="mt-3 flex items-center justify-between gap-3 border-t border-slate-200/70 pt-3">
                                 <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Nilai</span>
-                                <span class="text-base font-bold tracking-tight text-slate-900">
-                                    Rp {{ number_format($c['total_nilai'], 0, ',', '.') }}
+                                <span class="angka text-base font-extrabold tracking-tight text-slate-900">
+                                    {{ Rupiah::format($c['total_nilai']) }}
                                 </span>
                             </div>
                         </div>
@@ -529,14 +525,14 @@
                                         </svg>
                                     </span>
                                     <div class="min-w-0 flex-1">
-                                        <p class="truncate text-sm font-semibold text-slate-800">{{ $laporan->kode_warna_unit }}</p>
+                                        <p class="truncate text-sm font-semibold text-slate-800">{{ \App\Support\Tanggal::panjang($laporan->tanggal) }}</p>
                                         <p class="truncate text-[11px] text-slate-500">
-                                            {{ $laporan->no_plat }} · {{ $laporan->rincian_bahan }}
+                                            {{ $laporan->kode_warna_unit }} · {{ $laporan->no_plat }} · {{ $laporan->rincian_bahan }}
                                         </p>
                                     </div>
                                     <div class="shrink-0 text-right">
                                         <p class="text-sm font-bold text-slate-900">{{ number_format($laporan->qty_cc) }} CC</p>
-                                        <p class="text-[11px] text-slate-500">{{ $laporan->tanggal?->format('d/m/Y') }}</p>
+                                        <p class="text-[11px] text-slate-500">{{ $laporan->cabang_area }}</p>
                                     </div>
                                 </a>
                             </li>
@@ -575,14 +571,16 @@
                                     </svg>
                                 </span>
                                 <div class="min-w-0 flex-1">
-                                    <p class="truncate text-sm font-semibold text-slate-800">{{ $order->no_bukti_faktur }}</p>
+                                    <p class="truncate text-sm font-semibold text-slate-800">{{ \App\Support\Tanggal::panjang($order->tanggal) }}</p>
                                     <p class="truncate text-[11px] text-slate-500">
-                                        {{ $nota['jumlahItem'] }} item · {{ $order->nama_barang }}@if ($nota['jumlahItem'] > 1), dll.@endif
+                                        {{ $order->no_bukti_faktur }} · {{ $nota['jumlahItem'] }} item · {{ $order->nama_barang }}@if ($nota['jumlahItem'] > 1), dll.@endif
                                     </p>
                                 </div>
                                 <div class="shrink-0 text-right">
-                                    <p class="text-sm font-bold text-slate-900">Rp {{ number_format($nota['total'], 0, ',', '.') }}</p>
-                                    <p class="text-[11px] text-slate-500">{{ $order->tanggal?->format('d/m/Y') }}</p>
+                                    <p class="angka-sel text-sm">{{ Rupiah::format($nota['total']) }}</p>
+                                    <p class="text-[11px] text-slate-500">
+                                        {{ $order->cabang_area }}
+                                    </p>
                                 </div>
                                 </a>
                             </li>
