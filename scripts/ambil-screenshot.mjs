@@ -51,6 +51,10 @@ await jepret(tinter, 'riwayat-order-desktop')
 await tinter.goto(`${BASE}/laporan-harian`, { waitUntil: 'networkidle' })
 await jepret(tinter, 'laporan-harian-desktop', { penuh: true })
 
+// Halaman ke-2 dipakai sebagai bukti paginasi jalan (tombol halaman aktif pindah).
+await tinter.goto(`${BASE}/laporan-harian?page=2`, { waitUntil: 'networkidle' })
+await jepret(tinter, 'laporan-harian-desktop-hal2', { penuh: true })
+
 // ---------- Mobile ----------
 const ctxHp = await browser.newContext({
   viewport: { width: 412, height: 900 },

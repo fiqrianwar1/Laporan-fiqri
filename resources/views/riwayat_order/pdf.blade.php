@@ -29,7 +29,11 @@
         .banner table { width: 100%; border-collapse: collapse; }
         .banner td { vertical-align: middle; padding: 0; }
 
+        /* Kotak logo WTJ. display: block wajib supaya width/height dipakai
+           DomPDF — sebagai span (inline) kotaknya jadi pil tinggi yang
+           menyembul keluar banner. */
         .logo {
+            display: block;
             width: 44px;
             height: 44px;
             border-radius: 10px;

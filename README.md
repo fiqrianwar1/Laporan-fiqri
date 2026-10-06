@@ -28,6 +28,10 @@ Catatan tiap pekerjaan oplosan: unit, bahan, volume, jam kerja, dan hasil matchi
 
 ![Laporan Harian Oplosan](docs/screenshots/laporan-harian-desktop.png)
 
+Daftarnya dipotong 10 baris per halaman supaya tidak memanjang:
+
+![Laporan Harian Oplosan halaman 2](docs/screenshots/laporan-harian-desktop-hal2.png)
+
 ### Mode Manajer
 Tampilan pengawasan — menyorot biaya yang menyimpang dari rata-rata dan mutu kerja oplosan.
 
@@ -68,6 +72,13 @@ Bottom navigation, kartu bertumpuk, dan tombol besar supaya nyaman dipakai satu 
 - **Total per nota** — dihitung dari seluruh item dalam satu nota (setelah diskon).
 - **Export PDF** — preview di browser, cetak, atau unduh langsung.
 
+### Daftar Panjang
+Daftar yang isinya sudah menumpuk tidak dibentangkan semua — dipotong per halaman supaya halaman tetap pendek dan enak dilihat:
+
+- **Laporan harian** — 10 baris per halaman.
+- **Dashboard, aktivitas terbaru** — 6 catatan oplosan & 5 nota order per halaman, dengan penomoran halaman terpisah supaya membuka halaman oplosan tidak menggeser daftar order.
+- Nota di dashboard dipotong **per nota**, bukan per baris item, jadi satu nota berisi 7 barang tetap utuh dalam satu halaman.
+
 ### Hak Akses
 
 | Role | Bisa melakukan |
@@ -79,6 +90,7 @@ Bottom navigation, kartu bertumpuk, dan tombol besar supaya nyaman dipakai satu 
 - Responsif penuh: **bottom navigation** di HP, sidebar di desktop.
 - Command palette (Ctrl + K) untuk lompat antar halaman.
 - Tabel lebar bisa digeser ke samping tanpa merusak layout.
+- Penomoran halaman seragam lewat komponen `x-pager` (elipsis otomatis kalau halamannya banyak).
 
 > Screenshot di atas diambil otomatis lewat `scripts/ambil-screenshot.mjs`
 > (Playwright). Jalankan `node scripts/ambil-screenshot.mjs` kalau tampilan berubah.

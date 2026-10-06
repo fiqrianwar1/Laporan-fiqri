@@ -72,7 +72,9 @@ class LaporanHarianOplosanController extends Controller
         // Tabel daftar dipaginasi supaya halaman tetap ringan walau data harian
         // sudah menumpuk berbulan-bulan; ringkasan tetap dihitung dari seluruh
         // data periode terpilih (bukan hanya halaman yang tampil).
-        $barisHalaman = $this->filteredQuery($request)->paginate(15)->withQueryString();
+        // 10 baris per halaman - cukup untuk sekilas lihat, tapi tidak bikin
+        // halaman jadi panjang kalau catatannya sudah ratusan.
+        $barisHalaman = $this->filteredQuery($request)->paginate(10)->withQueryString();
 
         $totalBaris = $semua->count();
         $totalVolume = $semua->sum('volume_cc');

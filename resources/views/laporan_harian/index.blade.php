@@ -262,7 +262,12 @@
                     <h2 class="card-title">Catatan Harian</h2>
                     <p class="card-sub">Satu baris = satu pekerjaan oplosan cat untuk satu unit.</p>
                 </div>
-                <span class="pill pill-slate">{{ number_format($totalBaris) }} Baris</span>
+                <span class="pill pill-slate">
+                    {{ number_format($barisHalaman->total()) }} Baris
+                    @if ($barisHalaman->total() > $barisHalaman->perPage())
+                        &middot; hal. {{ $barisHalaman->currentPage() }}/{{ $barisHalaman->lastPage() }}
+                    @endif
+                </span>
             </div>
             @if ($totalBaris === 0)
                 <div class="px-6 py-14">
@@ -289,11 +294,7 @@
                         @include('laporan_harian._baris', ['baris' => $baris])
                     @endforeach
                 </div>
-                @if ($barisHalaman->hasPages())
-                    <div class="border-t border-slate-200/60 px-3 py-4 sm:px-6">
-                        {{ $barisHalaman->links() }}
-                    </div>
-                @endif
+                <x-pager :paginator="$barisHalaman" anchor="daftar-harian" />
             @endif
         </div>
     </div>

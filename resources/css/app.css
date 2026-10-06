@@ -326,6 +326,19 @@
         @apply flex w-full items-center justify-center gap-1.5 border-t border-slate-200/70 px-4 py-2.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900;
     }
 
+    /* --- Navigasi halaman (komponen x-pager) ---
+       Dipakai di daftar yang isinya panjang: hanya beberapa baris yang
+       tampil, sisanya dibuka lewat tombol nomor halaman. */
+    .pager-btn {
+        @apply inline-flex h-9 min-w-[36px] shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white px-2 text-xs font-bold text-slate-600 transition-all duration-200 hover:border-blue-300 hover:text-blue-700 active:scale-95;
+    }
+    .pager-btn.pager-aktif {
+        @apply border-blue-600 bg-blue-600 text-white shadow-sm shadow-blue-600/25;
+    }
+    .pager-btn.pager-mati {
+        @apply cursor-not-allowed border-slate-100 text-slate-300 hover:border-slate-100 hover:text-slate-300;
+    }
+
     /* --- Tabel item di dalam kartu nota ---
        Disamakan di semua halaman: kepala tabel berlatar abu tipis,
        angkanya rata kanan, dan barisnya diberi jarak yang sama. */

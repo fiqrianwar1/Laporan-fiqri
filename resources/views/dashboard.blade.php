@@ -502,19 +502,22 @@
                 <div class="card-head flex">
                     <div>
                         <h2 class="card-title">Laporan Oplosan Terbaru</h2>
-                        <p class="card-sub">5 catatan terakhir pada periode ini.</p>
+                        <p class="card-sub">
+                            {{ $aktivitasOplosan->lastPage() > 1 ? 'Halaman ' . $aktivitasOplosan->currentPage() . ' dari ' . $aktivitasOplosan->lastPage() : 'Seluruh' }}
+                            catatan periode ini ({{ number_format($aktivitasOplosan->total()) }} total).
+                        </p>
                     </div>
                     <a href="{{ route('laporan-oplosan.index') }}" class="text-xs font-bold text-blue-600 transition hover:text-blue-700">Lihat semua →</a>
                 </div>
 
-                @if ($oplosanTerbaru->isEmpty())
+                @if ($aktivitasOplosan->isEmpty())
                     <div class="px-6 py-10 text-center">
                         <p class="text-sm font-semibold text-slate-700">Belum ada laporan</p>
                         <p class="mt-1 text-xs text-slate-500">Data akan muncul setelah laporan oplosan dicatat.</p>
                     </div>
                 @else
                     <ul class="divide-y divide-slate-100/70">
-                        @foreach ($oplosanTerbaru as $laporan)
+                        @foreach ($aktivitasOplosan as $laporan)
                             <li>
                                 <a href="{{ route('laporan-oplosan.edit', $laporan) }}"
                                    class="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-blue-50/40 sm:px-5"
@@ -538,6 +541,7 @@
                             </li>
                         @endforeach
                     </ul>
+                    <x-pager :paginator="$aktivitasOplosan" anchor="aktivitas-oplosan" />
                 @endif
             </div>
 
@@ -546,19 +550,22 @@
                 <div class="card-head flex">
                     <div>
                         <h2 class="card-title">Nota Order Terbaru</h2>
-                        <p class="card-sub">5 nota terakhir pada periode ini, lengkap dengan jumlah itemnya.</p>
+                        <p class="card-sub">
+                            {{ $aktivitasOrder->lastPage() > 1 ? 'Halaman ' . $aktivitasOrder->currentPage() . ' dari ' . $aktivitasOrder->lastPage() : 'Seluruh' }}
+                            nota periode ini ({{ number_format($aktivitasOrder->total()) }} total).
+                        </p>
                     </div>
                     <a href="{{ route('riwayat-order.index') }}" class="text-xs font-bold text-blue-600 transition hover:text-blue-700">Lihat semua →</a>
                 </div>
 
-                @if ($orderTerbaru->isEmpty())
+                @if ($aktivitasOrder->isEmpty())
                     <div class="px-6 py-10 text-center">
                         <p class="text-sm font-semibold text-slate-700">Belum ada order</p>
                         <p class="mt-1 text-xs text-slate-500">Data akan muncul setelah pembelian dicatat.</p>
                     </div>
                 @else
                     <ul class="divide-y divide-slate-100/70">
-                        @foreach ($orderTerbaru as $nota)
+                        @foreach ($aktivitasOrder as $nota)
                             @php $order = $nota['items']->first(); @endphp
                             <li>
                                 <a href="{{ route('riwayat-order.edit', $order) }}"
@@ -586,6 +593,7 @@
                             </li>
                         @endforeach
                     </ul>
+                    <x-pager :paginator="$aktivitasOrder" anchor="aktivitas-order" />
                 @endif
             </div>
         </div>

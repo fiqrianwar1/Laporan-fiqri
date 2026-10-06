@@ -30,8 +30,12 @@
         .banner td { vertical-align: middle; padding: 0; }
 
         /* Kotak logo WTJ. Latarnya putih supaya logo tetap terbaca di atas
-           banner biru; gambarnya di-scale ke dalam kotak. */
+           banner biru; gambarnya di-scale ke dalam kotak.
+           display: block wajib: sebagai span (inline), width/height tidak
+           dipakai DomPDF dan kotaknya jadi pil tinggi yang menyembul
+           keluar banner. */
         .logo {
+            display: block;
             width: 46px;
             height: 46px;
             border-radius: 10px;

@@ -7,6 +7,7 @@ use App\Models\RiwayatOrder;
 use App\Support\Cabang;
 use App\Support\NotaGrouper;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -98,6 +99,15 @@ class DashboardController extends Controller
         $bulanTren = $bulan ?: now()->month;
         $tahunTren = $tahun ?: now()->year;
 
+        // ===== Daftar aktivitas dipaginasi =====
+        // Zaman data sudah menumpuk, menampilkan seluruh riwayat bikin
+        // halaman dashboard jadi sangat panjang. Jadi yang tampil cukup
+        // beberapa per halaman, sisanya dibuka lewat tombol halaman.
+        // Query dasar + urutannya sama persis dengan method aslinya,
+        // hanya hasil akhirnya dipotong per halaman.
+        $aktivitasOplosan = $this->kueriOplosanTerbaru($bulan, $tahun)->paginate(6, ['*'], 'hal_oplosan')->withQueryString();
+        $aktivitasOrder = $this->paginatorNotaOrderTerbaru($bulan, $tahun, 5, 'hal_order')->withQueryString();
+
         return view('dashboard', [
             'bulan'            => $bulan,
             'tahun'            => $tahun,
@@ -118,6 +128,8 @@ class DashboardController extends Controller
             'topWarna'         => $this->topWarna($bulan, $tahun),
             'oplosanTerbaru'   => $this->oplosanTerbaru($bulan, $tahun),
             'orderTerbaru'     => $this->orderTerbaru($bulan, $tahun),
+            'aktivitasOplosan' => $aktivitasOplosan,
+            'aktivitasOrder'   => $aktivitasOrder,
             'semuaPeriode'     => $semuaPeriode,
         ]);
     }
@@ -286,11 +298,20 @@ class DashboardController extends Controller
             ->take(5)
             ->values();
     }
-
     /**
-     * Laporan oplosan terbaru.
+     * Laporan oplosan terbaru (seluruhnya - dipakai sebagai ringkasan
+     * cepat, mis. untuk menghitung "Lihat semua").
      */
     protected function oplosanTerbaru($bulan, $tahun)
+    {
+        return $this->kueriOplosanTerbaru($bulan, $tahun)->get();
+    }
+
+    /**
+     * Query dasar laporan oplosan terbaru, urut dari yang paling baru.
+     * Dipakai oleh oplosanTerbaru() dan versi paginasi di dashboard.
+     */
+    protected function kueriOplosanTerbaru($bulan, $tahun)
     {
         $query = LaporanOplosan::query();
 
@@ -301,13 +322,22 @@ class DashboardController extends Controller
             $query->whereYear('tanggal', $tahun);
         }
 
-        return $query->orderByDesc('tanggal')->orderByDesc('nomor_urut')->orderByDesc('id')->get();
+        return $query->orderByDesc('tanggal')->orderByDesc('nomor_urut')->orderByDesc('id');
     }
 
     /**
-     * Riwayat order terbaru.
+     * Riwayat order terbaru (dikelompokkan per nota).
      */
     protected function orderTerbaru($bulan, $tahun)
+    {
+        return $this->kelompokkanNotaOrder($this->kueriOrderTerbaru($bulan, $tahun)->get());
+    }
+
+    /**
+     * Query dasar baris order terbaru. Barisnya dikelompokkan jadi nota oleh
+     * kelompokkanNotaOrder() sebelum ditampilkan.
+     */
+    protected function kueriOrderTerbaru($bulan, $tahun)
     {
         $query = RiwayatOrder::query();
 
@@ -318,8 +348,93 @@ class DashboardController extends Controller
             $query->whereYear('tanggal', $tahun);
         }
 
-        $orders = $query->orderByDesc('tanggal')->orderByDesc('nomor_urut')->orderByDesc('id')->get();
+        return $query->orderByDesc('tanggal')->orderByDesc('nomor_urut')->orderByDesc('id');
+    }
 
+    /**
+     * Ambil daftar nota terbaru dalam bentuk PAGINATOR, siap dipakai
+     * komponen x-pager.
+     *
+     * Tidak bisa langsung memakai query group-by untuk ditampilkan: hasil
+     * group by hanya berisi kolom ringkasan (id, tanggal), bukan model
+     * lengkap - padahal nota butuh seluruh itemnya (nama barang, qty, harga).
+     *
+     * Jadi dikerjakan dua langkah:
+     *   1. paginator memotong DAFTAR KUNCI nota (satu baris = satu nomor bukti);
+     *   2. kunci di halaman itu baru dipakai mengambil seluruh item aslinya,
+     *      lalu dikelompokkan seperti biasa.
+     * Hasilnya tetap satu halaman = satu nota utuh, tidak terbelah.
+     */
+    protected function paginatorNotaOrderTerbaru($bulan, $tahun, int $perHalaman = 5, string $namaHalaman = 'hal_order')
+    {
+        $halaman = max(1, (int) request()->input($namaHalaman, 1));
+
+        // Langkah 1: ambil daftar kunci nota (satu baris = satu nomor bukti),
+        // diurutkan dari yang paling baru. Di sini yang dipotong per halaman.
+        $semuaKunci = $this->daftarKunciNota($bulan, $tahun);
+        $total = $semuaKunci->count();
+        $kunci = $semuaKunci->slice(($halaman - 1) * $perHalaman, $perHalaman)->values()->all();
+
+        // Langkah 2: ambil seluruh item milik nota-nota di halaman ini dalam
+        // satu query (tidak ada N+1), baru dikelompokkan seperti biasa.
+        $notas = collect();
+
+        if (! empty($kunci)) {
+            $items = RiwayatOrder::query()
+                ->when($bulan, fn ($q) => $q->whereMonth('tanggal', $bulan))
+                ->when($tahun, fn ($q) => $q->whereYear('tanggal', $tahun))
+                ->orderByDesc('tanggal')->orderByDesc('nomor_urut')->orderByDesc('id')
+                ->get()
+                // Disaring di PHP memakai kunci yang sama dengan pengelompokan,
+                // supaya "SP/123" dan "SP123" tetap dianggap nota yang sama.
+                ->filter(fn ($order) => in_array($order->nomor_bukti, $kunci, true));
+
+            $perKunci = $this->kelompokkanNotaOrder($items)
+                ->keyBy(fn ($nota) => $this->kunciNota($nota));
+
+            // Urutkan sesuai urutan halaman, bukan urutan hasil grouping.
+            $notas = collect($kunci)->map(fn ($k) => $perKunci->get($k))->filter()->values();
+        }
+
+        return new \Illuminate\Pagination\LengthAwarePaginator(
+            $notas,
+            $total,
+            $perHalaman,
+            $halaman,
+            ['path' => request()->url(), 'query' => request()->query()],
+        );
+    }
+
+    /**
+     * Daftar kunci nota (nomor bukti ternormalisasi) urut dari yang terbaru.
+     * Dipakai untuk menentukan nota mana yang masuk halaman berapa.
+     */
+    protected function daftarKunciNota($bulan, $tahun)
+    {
+        return $this->kueriOrderTerbaru($bulan, $tahun)
+            ->get()
+            ->map(fn ($order) => $order->nomor_bukti)
+            ->unique()
+            ->values();
+    }
+
+    /**
+     * Kunci pengelompokan satu nota - disamakan dengan versi SQL
+     * (nomor bukti tanpa spasi/tanda baca, huruf besar).
+     */
+    protected function kunciNota(array $nota): string
+    {
+        $nomor = preg_replace('/[^A-Za-z0-9]/', '', (string) ($nota['nomor'] ?? ''));
+
+        return $nomor !== '' ? strtoupper($nomor) : 'TANPA-NOMOR';
+    }
+
+    /**
+     * Ubah baris order jadi daftar nota lengkap dengan jumlah item dan
+     * total nilainya, urut dari nota terbaru.
+     */
+    protected function kelompokkanNotaOrder($orders)
+    {
         // Ditampilkan sebagai daftar nota terbaru, bukan daftar baris barang,
         // supaya satu nota berisi 7 item tidak menutupi nota lain.
         return NotaGrouper::withTotals(
@@ -329,6 +444,8 @@ class DashboardController extends Controller
                 fn ($order) => $order->no_bukti_faktur,
             ),
             fn ($order) => (float) $order->total_item,
-        )->sortByDesc(fn ($nota) => $nota['tanggal']?->timestamp ?? 0)->take(5)->values();
+        )
+            ->sortByDesc(fn ($nota) => $nota['tanggal']?->timestamp ?? 0)
+            ->values();
     }
 }
