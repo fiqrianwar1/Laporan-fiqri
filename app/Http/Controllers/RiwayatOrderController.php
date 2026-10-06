@@ -304,6 +304,10 @@ class RiwayatOrderController extends Controller
 
         $pdf = Pdf::loadView('riwayat_order.pdf', $data)->setPaper('a4', 'landscape');
 
+        // DomPDF menjalankan script isi view dua kali; kalau dibiarkan, baris
+        // "HAL. {PAGE_NUM} / {PAGE_COUNT}" di footer ikut tercetak mentah.
+        $pdf->setOption('isPhpEnabled', true);
+
         $namaFile = 'riwayat-order-' . ($namaBulan ? strtolower($namaBulan) . '-' . $tahun : now()->format('Y-m-d')) . '.pdf';
 
         return [$pdf, $namaFile, $data];

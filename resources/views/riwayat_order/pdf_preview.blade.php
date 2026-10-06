@@ -174,8 +174,11 @@
                 </div>
             </div>
 
+            {{-- Toolbar viewer sengaja dibiarkan tampil: di dalam iframe browser
+                 tidak menyediakan kontrol zoom, jadi pengguna perlu toolbar untuk
+                 memperbesar atau menggeser halaman. --}}
             <iframe id="pdf-frame"
-                    src="{{ $streamUrl }}#toolbar=0&navpanes=0&view=FitH"
+                    src="{{ $streamUrl }}#view=FitH"
                     title="Preview PDF Riwayat Order"
                     class="block h-[70vh] min-h-[460px] w-full rounded-xl bg-white shadow-inner sm:h-[80vh] sm:min-h-[620px]"></iframe>
         </div>

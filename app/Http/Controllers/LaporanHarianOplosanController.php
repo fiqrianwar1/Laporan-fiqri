@@ -245,6 +245,10 @@ class LaporanHarianOplosanController extends Controller
 
         $pdf = Pdf::loadView('laporan_harian.pdf', $data)->setPaper('a4', 'landscape');
 
+        // DomPDF menjalankan script isi view dua kali; kalau dibiarkan, baris
+        // "HAL. {PAGE_NUM} / {PAGE_COUNT}" di footer ikut tercetak mentah.
+        $pdf->setOption('isPhpEnabled', true);
+
         $namaFile = 'laporan-harian-oplosan-'
             .($namaBulan ? strtolower($namaBulan).'-'.$tahun : now()->format('Y-m-d'))
             .'.pdf';

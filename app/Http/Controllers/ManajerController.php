@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LaporanHarianOplosan;
 use App\Models\LaporanOplosan;
 use App\Models\RiwayatOrder;
 use App\Support\Cabang;
@@ -390,4 +391,82 @@ class ManajerController extends Controller
                 : collect(),
         ]);
     }
+
+    /**
+     * ================= LAPORAN HARIAN (PANTAU) =================
+     * Rekap pekerjaan oplosan harian per unit. Yang disorot di sini angka
+     * yang menunjukkan mutu kerja: berapa persen warna yang matching sama,
+     * berapa lama pengerjaannya, dan unit mana yang perlu ditelusuri.
+     */
+    public function laporanHarian(Request $request)
+    {
+        $bulan = $request->input('bulan');
+        $tahun = $request->input('tahun');
+        $cabang = $request->input('cabang');
+
+        $semua = $this->filterPeriode(LaporanHarianOplosan::query(), $bulan, $tahun, $cabang)
+            ->orderBy('tanggal')->orderBy('jam_dibuat')->orderBy('id')->get();
+
+        $totalBaris = $semua->count();
+        $jumlahSama = $semua->where('hasil_matching', 'Sama')->count();
+        $totalDurasi = $semua->sum(fn ($b) => (int) $b->durasi_menit);
+
+        // Unit dengan volume terbesar - pembanding kalau ada pemakaian mencolok.
+        $perUnit = $semua
+            ->groupBy('plat_nomor')
+            ->map(function ($baris, $plat) {
+                $jumlah = $baris->count();
+                $sama = $baris->where('hasil_matching', 'Sama')->count();
+
+                return [
+                    'plat'    => $plat,
+                    'warna'   => $baris->last()->kode_warna,
+                    'tipe'    => $baris->last()->tipe_mobil,
+                    'jumlah'  => $jumlah,
+                    'volume'  => $baris->sum('volume_cc'),
+                    'durasi'  => $baris->sum(fn ($b) => (int) $b->durasi_menit),
+                    'sama'    => $sama,
+                    'persen'  => $jumlah > 0 ? round($sama / $jumlah * 100) : 0,
+                ];
+            })
+            ->sortByDesc('volume')
+            ->take(5)
+            ->values();
+
+        // Baris yang hasil matching-nya belum sama - perlu diperiksa ulang.
+        $belumSama = $semua
+            ->where('hasil_matching', '!=', 'Sama')
+            ->sortByDesc('tanggal')
+            ->take(5)
+            ->values();
+
+        $periode = $this->pilihanPeriode();
+
+        return view('manajer.laporan_harian', [
+            'baris'        => $semua->sortByDesc('tanggal')->take(20)->values(),
+            'jumlahBaris'  => $totalBaris,
+            'totalVolume'  => $semua->sum('volume_cc'),
+            'totalDurasi'  => $totalDurasi,
+            'rataDurasi'   => $totalBaris > 0 ? (int) round($totalDurasi / $totalBaris) : 0,
+            'jumlahSama'   => $jumlahSama,
+            'persenSama'   => $totalBaris > 0 ? round($jumlahSama / $totalBaris * 100) : 0,
+            'perUnit'      => $perUnit,
+            'belumSama'    => $belumSama,
+            'perCabang'    => $semua
+                ->groupBy(fn ($b) => $b->cabang_area ?: Cabang::default())
+                ->map(fn ($baris, $nama) => [
+                    'cabang' => $nama,
+                    'baris'  => $baris->count(),
+                    'volume' => $baris->sum('volume_cc'),
+                ])
+                ->sortByDesc('volume')
+                ->values(),
+            'cabang'       => $cabang,
+            'bulan'        => $bulan,
+            'tahun'        => $tahun,
+            'daftarTahun'  => $periode['daftarTahun'],
+            'namaBulan'    => $periode['namaBulan'],
+        ]);
+    }
 }
+

@@ -29,8 +29,15 @@
             'icon'  => 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
         ],
         [
+            'label' => 'Laporan Harian',
+            'desc'  => 'Catatan oplosan per unit',
+            'route' => 'laporan-harian.index',
+            'aktif' => request()->routeIs('laporan-harian.*'),
+            'icon'  => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
+        ],
+        [
             'label' => 'Laporan Oplosan',
-            'desc'  => 'Rekap tinting per unit',
+            'desc'  => 'Rekap tinting per nota',
             'route' => 'laporan-oplosan.index',
             'aktif' => request()->routeIs('laporan-oplosan.*'),
             'icon'  => 'M9 3v2m6-2v2M4 8h16M6 6h12a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2z',
@@ -48,9 +55,11 @@
     // Label dibuat jelas per tombol (bukan cuma "Cetak" dua kali) supaya
     // pengguna tahu bedanya sebelum mengklik.
     $aksiCepat = [
+        ['short' => 'Catat Harian',    'label' => 'Catat Laporan Harian',  'route' => 'laporan-harian.create',  'accent' => 'emerald', 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'],
         ['short' => 'Catat Oplosan',   'label' => 'Catat Laporan Oplosan', 'route' => 'laporan-oplosan.create', 'accent' => 'blue',    'icon' => 'M9 3v2m6-2v2M4 8h16M6 6h12a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2z'],
         ['short' => 'Catat Order',     'label' => 'Catat Pembelian Bahan', 'route' => 'riwayat-order.create',   'accent' => 'indigo',  'icon' => 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4'],
-        ['short' => 'PDF Oplosan',     'label' => 'Preview PDF Oplosan',   'route' => 'laporan-oplosan.preview', 'accent' => 'amber',   'icon' => 'M9 12h6m-6 4h6M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z'],
+        ['short' => 'PDF Harian',      'label' => 'Preview PDF Harian',    'route' => 'laporan-harian.preview', 'accent' => 'amber',   'icon' => 'M9 12h6m-6 4h6M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z'],
+        ['short' => 'PDF Oplosan',     'label' => 'Preview PDF Oplosan',   'route' => 'laporan-oplosan.preview', 'accent' => 'sky',    'icon' => 'M9 12h6m-6 4h6M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z'],
         ['short' => 'PDF Order',       'label' => 'Preview PDF Order',     'route' => 'riwayat-order.preview',   'accent' => 'violet',  'icon' => 'M9 12h6m-6 4h6M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z'],
     ];
 @endphp
@@ -67,9 +76,14 @@
              saat sidebar dikecilkan (kalau tersembunyi, tidak ada cara
              membesarkannya lagi). --}}
         <div class="sidebar-head flex shrink-0 items-center gap-3 px-4 py-4">
-            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-lg font-bold text-white shadow-lg shadow-blue-500/30"
+            @php $logoSidebar = \App\Support\Logo::ada() ? asset('images/' . basename(\App\Support\Logo::path())) : null; @endphp
+            <div class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white p-1 shadow-lg shadow-blue-500/30 ring-1 ring-blue-100"
                  title="Warna Tanjung Jaya">
-                W<br>
+                @if ($logoSidebar)
+                    <img src="{{ $logoSidebar }}" alt="Logo WTJ" class="h-full w-full object-contain">
+                @else
+                    <span class="text-lg font-bold text-blue-700">W</span>
+                @endif
             </div>
             <div class="side-full min-w-0 flex-1">
                 <p class="truncate text-sm font-bold leading-tight tracking-tight text-slate-900">Warna Tanjung Jaya</p>
@@ -225,8 +239,13 @@
         <div class="flex h-16 items-center justify-between gap-3 px-4 sm:px-6 lg:h-18">
             {{-- Brand: di desktop disembunyikan karena sudah ada di sidebar --}}
             <div class="wtj-mobile-only flex min-w-0 items-center gap-3">
-                <div class="ring-2 ring-blue-500/20 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-lg font-bold text-white shadow-lg shadow-blue-500/30">
-                    W
+                @php $logoTopbar = \App\Support\Logo::ada() ? asset('images/' . basename(\App\Support\Logo::path())) : null; @endphp
+                <div class="ring-2 ring-blue-500/20 flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-white p-1 shadow-lg shadow-blue-500/30">
+                    @if ($logoTopbar)
+                        <img src="{{ $logoTopbar }}" alt="Logo WTJ" class="h-full w-full object-contain">
+                    @else
+                        <span class="text-lg font-bold text-blue-700">W</span>
+                    @endif
                 </div>
                 <div class="min-w-0">
                     <p class="truncate text-sm font-bold leading-tight tracking-tight text-slate-900 sm:text-base">Warna Tanjung Jaya</p>
@@ -463,7 +482,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $item['icon'] }}"/>
                         </svg>
                     </span>
-                    {{ ['Dashboard' => 'Beranda', 'Laporan Oplosan' => 'Oplosan', 'Riwayat Order' => 'Order'][$item['label']] ?? $item['label'] }}
+                    {{ ['Dashboard' => 'Beranda', 'Laporan Harian' => 'Harian', 'Laporan Oplosan' => 'Oplosan', 'Riwayat Order' => 'Order'][$item['label']] ?? $item['label'] }}
                 </a>
             @endforeach
             <button type="button" data-sheet-open
@@ -548,10 +567,13 @@
                             /* Daftar menu untuk pencarian cepat */
                             const daftarMenu = [
                                 { label: 'Dashboard', sub: 'Ringkasan & statistik', url: @json(route('dashboard')) },
-                                { label: 'Laporan Oplosan', sub: 'Lihat rekap tinting per unit', url: @json(route('laporan-oplosan.index')) },
+                                { label: 'Laporan Harian', sub: 'Catatan oplosan per unit', url: @json(route('laporan-harian.index')) },
+                                { label: 'Laporan Oplosan', sub: 'Lihat rekap tinting per nota', url: @json(route('laporan-oplosan.index')) },
                                 { label: 'Riwayat Order', sub: 'Lihat belanja bahan & consumable', url: @json(route('riwayat-order.index')) },
+                                { label: 'Preview PDF Laporan Harian', sub: 'Cek dokumen sebelum cetak', url: @json(route('laporan-harian.preview')) },
                                 { label: 'Preview PDF Laporan Oplosan', sub: 'Cek dokumen sebelum cetak', url: @json(route('laporan-oplosan.preview')) },
                                 { label: 'Preview PDF Riwayat Order', sub: 'Cek dokumen sebelum cetak', url: @json(route('riwayat-order.preview')) },
+                                { label: 'Download PDF Laporan Harian', sub: 'Unduh berkas langsung', url: @json(route('laporan-harian.pdf')) },
                                 { label: 'Download PDF Laporan Oplosan', sub: 'Unduh berkas langsung', url: @json(route('laporan-oplosan.pdf')) },
                                 { label: 'Download PDF Riwayat Order', sub: 'Unduh berkas langsung', url: @json(route('riwayat-order.pdf')) },
                                 { label: 'Keluar', sub: 'Logout dari sistem', url: @json(route('logout')), post: true },
@@ -559,6 +581,7 @@
 
                             if (bolehIsi) {
                                 daftarMenu.unshift(
+                                    { label: 'Tambah Laporan Harian', sub: 'Catat pekerjaan oplosan baru', url: @json(route('laporan-harian.create')) },
                                     { label: 'Tambah Laporan Oplosan', sub: 'Catat oplosan baru', url: @json(route('laporan-oplosan.create')) },
                                     { label: 'Tambah Riwayat Order', sub: 'Catat pembelian baru', url: @json(route('riwayat-order.create')) }
                                 );

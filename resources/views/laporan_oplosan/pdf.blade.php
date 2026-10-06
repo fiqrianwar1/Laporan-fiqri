@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <title>Laporan Oplosan</title>
     <style>
-        @page { margin: 0 26px 28px; }
-
-        /* Ruang putih di atas banner supaya kop tidak nempel ke tepi kertas. */
-        .top-gap { height: 22px; }
+        /* Nomor halaman di footer ditulis lewat script php, karena DomPDF
+           tidak mendukung at-rule @page { @bottom-center }. */
+        @page { margin: 0 26px 36px; }
 
         * { box-sizing: border-box; }
 
@@ -35,11 +34,25 @@
             height: 44px;
             border-radius: 10px;
             background: #ffffff;
-            color: #1d4ed8;
             text-align: center;
+            padding: 3px;
+        }
+
+        .logo img {
+            width: 38px;
+            height: 38px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+            border-radius: 7px;
+        }
+
+        .logo .inisial {
+            display: block;
+            color: #1d4ed8;
             font-size: 11px;
             font-weight: 700;
-            line-height: 44px;
+            line-height: 38px;
             letter-spacing: 0;
         }
 
@@ -98,6 +111,8 @@
             color: #475569;
         }
 
+        /* Badge di 2 sel: yang kedua dikasih jarak lewat margin, bukan spasi,
+           karena DomPDF suka membuang spasi antar inline-block. */
         .meta .badge {
             display: inline-block;
             background: #eef2ff;
@@ -106,7 +121,10 @@
             padding: 3px 9px;
             border-radius: 10px;
             font-size: 8px;
+            margin-right: 5px;
         }
+
+        .meta .badge.kosong { background: #f1f5f9; color: #475569; margin-right: 0; }
 
         .meta .right { text-align: right; color: #94a3b8; }
 
@@ -168,10 +186,12 @@
             margin-top: 3px;
         }
 
+        /* Kolom angka disejajarkan dengan lebar yang sama di semua baris
+           supaya digit satuannya lurus saat dibaca cepat. */
         table.data th,
         table.data td {
             border: 1px solid #d7dee8;
-            padding: 6px 6px;
+            padding: 5px 6px;
             vertical-align: middle;
         }
 
@@ -187,6 +207,10 @@
         table.data td { font-size: 8px; }
 
         table.data tbody tr:nth-child(even) td { background: #f5f8ff; }
+
+        .col-no   { width: 5%;  }
+        .col-qty  { width: 9%;  }
+        .col-uang { width: 12%; }
 
         .right { text-align: right; }
         .center { text-align: center; }
@@ -251,11 +275,13 @@
         }
 
         table.items td {
-            font-size: 8px;
-            padding: 5px 6px;
+            font-size: 8.4px;
+            padding: 5.5px 7px;
             border-bottom: 1px solid #eef2f7;
             vertical-align: middle;
         }
+
+        table.items tbody tr:nth-child(even) td { background: #fafcff; }
 
         table.items tr:last-child td { border-bottom: 0; }
 
@@ -321,15 +347,21 @@
             min-width: 140px;
         }
 
+        /* Teks footer: rata kiri, satu bagian, karena nomor halamannya
+           ditulis terpisah oleh script DomPDF di posisi tetap. */
         .footer {
             position: fixed;
-            bottom: -18px;
+            bottom: -26px;
             left: 0;
             right: 0;
             text-align: center;
             font-size: 7.5px;
             color: #94a3b8;
         }
+
+        /* Baris tanda tangan tidak boleh kepotong ke halaman berikutnya. */
+        .sign,
+        .grand { page-break-inside: avoid; }
 
         /* ===== Pemisah cabang =====
            Nota tiap cabang dikelompokkan di bawah judul "Bagian" sendiri,
@@ -339,6 +371,7 @@
             border-left: 4px solid #1d4ed8;
             background: #f1f5f9;
             padding: 7px 12px;
+            page-break-after: avoid;
         }
 
         .bagian .nama {
@@ -363,13 +396,16 @@
             color: #0f172a;
         }
 
-        /* Jumlah per cabang, muncul di akhir tiap bagian. */
+        /* Jumlah per cabang, muncul di akhir tiap bagian. Warna selnya sama
+           dengan blok kode nota di atasnya supaya terbaca sebagai satu kesatuan. */
         .subtotal td {
-            background: #f1f5f9 !important;
+            background: #eef2ff !important;
             font-weight: 700;
             color: #1e293b;
-            font-size: 8px;
-            border-top: 2px solid #94a3b8;
+            font-size: 8.5px;
+            padding: 6px;
+            border-top: 2px solid #1d4ed8;
+            border-bottom: 1px solid #d7dee8;
         }
 
         /* Kotak total keseluruhan (gabungan semua cabang). */
@@ -381,7 +417,9 @@
             padding: 10px 14px;
         }
 
+        /* Label kecil di atas angka, jadi tidak ada teks yang perlu di-float. */
         .grand .label {
+            display: block;
             font-size: 8px;
             font-weight: 700;
             text-transform: uppercase;
@@ -415,11 +453,19 @@
     </style>
 </head>
 <body>
-    <div class="top-gap"></div>
     <div class="banner">
         <table>
             <tr>
-                <td style="width: 52px;"><span class="logo">WTJ</span></td>
+                <td style="width: 54px;">
+                    @php $logo = \App\Support\Logo::path(); @endphp
+                    <span class="logo">
+                        @if ($logo)
+                            <img src="{{ $logo }}" alt="Logo WTJ">
+                        @else
+                            <span class="inisial">WTJ</span>
+                        @endif
+                    </span>
+                </td>
                 <td>
                     <p class="brand">PT. Warna Tanjung Jaya</p>
                     <p class="title">Laporan Oplosan</p>
@@ -450,14 +496,14 @@
                     $kodeDokumen = $cabang ? \App\Support\Cabang::singkatan($cabang) : 'ALL';
                 @endphp
                 <span class="badge">No. Dokumen: LO-{{ $kodeDokumen }}-{{ $tahun }}{{ $namaBulan ? '-' . strtoupper(substr($namaBulan, 0, 3)) : '' }}</span>
-                <span class="badge" style="background:#f1f5f9;color:#475569;">
-                    {{ $cabang ?: 'Seluruh Cabang' }}
-                </span>
+                <span class="badge kosong">{{ $cabang ?: 'Seluruh Cabang' }}</span>
             </td>
             <td class="right">Dicetak: {{ now()->translatedFormat('d F Y, H:i') }} WIB</td>
         </tr>
     </table>
 
+    {{-- Kartu ringkasan: tiap kartu punya kolom tetap 33% supaya tingginya
+         sama rata walau isinya beda panjang. --}}
     <table class="summary">
         <tr>
             <td class="card-blue">
@@ -521,6 +567,13 @@
                 ->values();
         @endphp
         {{-- Satu nota = satu blok berisi seluruh item bahannya. --}}
+        {{-- Lebar kolom ditulis di sini (bukan cuma di header) karena kolom
+             No. Plat bisa hilang, jadi lebar kolom "Harga" pun ikut bergeser. --}}
+        @php
+            $hargaPct = $adaPlat ? 12 : 13;
+            $diskonPct = $adaPlat ? 9 : 10;
+            $hargaCcPct = $adaPlat ? 10 : 11;
+        @endphp
         <div class="nota">
             <div class="nota-head">
                 <span class="total">{{ \App\Support\Rupiah::format($nota['total']) }}</span>
@@ -553,17 +606,17 @@
             <table class="items">
                 <thead>
                     <tr>
-                        <th class="center" style="width: 5%;">No</th>
-                        <th style="width: 16%;">Warna / Unit</th>
+                        <th class="center col-no">No</th>
+                        <th style="width: {{ $adaPlat ? 16 : 18 }}%;">Warna / Unit</th>
                         @if ($adaPlat)
-                            <th style="width: 13%;">No. Plat</th>
+                            <th style="width: 12%;">No. Plat</th>
                         @endif
                         <th>Rincian Bahan</th>
-                        <th class="right" style="width: 8%;">Qty</th>
-                        <th class="right" style="width: 13%;">Harga</th>
-                        <th class="right" style="width: 10%;">Diskon</th>
+                        <th class="right col-qty">Qty</th>
+                        <th class="right" style="width: {{ $hargaPct }}%;">Harga</th>
+                        <th class="right" style="width: {{ $diskonPct }}%;">Diskon</th>
                         <th class="right" style="width: 12%;">Total Item</th>
-                        <th class="right" style="width: 11%;">Harga / CC</th>
+                        <th class="right" style="width: {{ $hargaCcPct }}%;">Harga / CC</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -575,7 +628,7 @@
                                 <td>{{ $item->no_plat }}</td>
                             @endif
                             <td>{{ $item->rincian_bahan }}</td>
-                            <td class="right">{{ number_format($item->qty_cc) }}</td>
+                            <td class="right strong">{{ number_format($item->qty_cc) }}</td>
                             <td class="right">{{ \App\Support\Rupiah::format($item->harga_nota) }}</td>
                             <td class="right muted">
                                 @php $nominalDiskon = (float) $item->nominal_diskon; @endphp
@@ -595,17 +648,17 @@
         <table class="data">
             <tfoot>
                 <tr class="subtotal">
-                    <td class="right">
+                    <td class="right" colspan="3">
                         SUBTOTAL {{ strtoupper($grup['cabang']) }} &middot;
                         {{ $grup['notas']->count() }} NOTA &middot;
                         {{ number_format($grup['notas']->sum(fn ($n) => $n['items']->count())) }} ITEM &middot;
                         {{ number_format($grup['notas']->sum(fn ($n) => $n['items']->sum('qty_cc'))) }} CC/LTR
                     </td>
-                    <td class="right" style="width: 14%;">
-                        {{ \App\Support\Rupiah::format($grup['notas']->sum('total')) }}
-                    </td>
-                    <td class="right" style="width: 10%;">&nbsp;</td>
-                    <td class="right" style="width: 11%;">&nbsp;</td>
+                    <td class="right">{{ number_format($grup['notas']->sum(fn ($n) => $n['items']->sum('qty_cc'))) }}</td>
+                    <td class="right">&nbsp;</td>
+                    <td class="right">&nbsp;</td>
+                    <td class="right">{{ \App\Support\Rupiah::format($grup['notas']->sum('total')) }}</td>
+                    <td class="right">&nbsp;</td>
                 </tr>
             </tfoot>
         </table>
@@ -624,8 +677,8 @@
          angka total keseluruhan tetap ada walau nota dipisah per cabang. --}}
     @if ($notas->isNotEmpty())
         <div class="grand">
-            <span class="angka">{{ \App\Support\Rupiah::format($totalBiaya) }}</span>
             <span class="label">Total Keseluruhan (Semua Cabang)</span>
+            <span class="angka">{{ \App\Support\Rupiah::format($totalBiaya) }}</span>
             <div class="rinci">
                 {{ $bagian->count() }} cabang &middot;
                 {{ $notas->count() }} nota &middot;
@@ -655,6 +708,27 @@
         </tr>
     </table>
 
+    @php
+        // Nomor halaman ditulis di sini, bukan di dalam <div class="footer">,
+        // karena DomPDF baru tahu jumlah halaman setelah dokumen selesai
+        // dirender. Teks footer-nya sendiri tetap ada di bawah sebagai teks
+        // biasa, jadi tidak ada placeholder yang tercetak mentah.
+        //
+        // Font diambil lewat $fontMetrics, bukan null: kalau null, DomPDF
+        // justru ikut menulis ulang placeholder "HAL. {PAGE_NUM} ..." apa
+        // adanya dan halaman terakhir jadi kosong.
+        $scriptHalaman = <<<'HTML'
+<script type="text/php">
+    if (isset($pdf)) {
+        $font = $fontMetrics->getFont('DejaVu Sans', 'normal');
+        $pdf->page_text(709, 572, 'HAL. {PAGE_NUM} / {PAGE_COUNT}', $font, 7, [0.58, 0.64, 0.72]);
+    }
+</script>
+HTML;
+    @endphp
+
     <div class="footer">Dokumen dibuat otomatis oleh sistem Laporan Oplosan &mdash; PT. Warna Tanjung Jaya</div>
+
+    {!! $scriptHalaman !!}
 </body>
 </html>

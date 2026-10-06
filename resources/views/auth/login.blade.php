@@ -9,8 +9,13 @@
     <div class="relative z-10 flex-col justify-center gap-10 flex-1 p-12 xl:p-16 w-full text-white">
         {{-- Logo --}}
         <div class="flex items-center gap-3 fade-up">
-            <div class="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur-md border-white/25 flex items-center justify-center font-bold text-xl shadow-lg">
-                W
+            @php $logoLogin = \App\Support\Logo::ada() ? asset('images/' . basename(\App\Support\Logo::path())) : null; @endphp
+            <div class="w-11 h-11 rounded-2xl bg-white p-1 backdrop-blur-md shadow-lg flex items-center justify-center">
+                @if ($logoLogin)
+                    <img src="{{ $logoLogin }}" alt="Logo WTJ" class="h-full w-full object-contain">
+                @else
+                    <span class="font-bold text-xl text-blue-700">W</span>
+                @endif
             </div>
             <div>
                 <p class="font-bold text-lg leading-tight tracking-tight">Warna Tanjung Jaya</p>
@@ -67,8 +72,13 @@
 
         {{-- Logo versi mobile --}}
         <div class="lg:hidden text-center mb-8 fade-up">
-            <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30 text-white font-bold text-2xl mb-3">
-                W
+            @php $logoLoginM = \App\Support\Logo::ada() ? asset('images/' . basename(\App\Support\Logo::path())) : null; @endphp
+            <div class="w-14 h-14 mx-auto rounded-2xl bg-white p-1.5 flex items-center justify-center shadow-lg shadow-blue-500/30 mb-3 ring-1 ring-blue-100">
+                @if ($logoLoginM)
+                    <img src="{{ $logoLoginM }}" alt="Logo WTJ" class="h-full w-full object-contain">
+                @else
+                    <span class="text-white font-bold text-2xl">W</span>
+                @endif
             </div>
             <h1 class="text-xl font-bold text-slate-900 tracking-tight">Warna Tanjung Jaya</h1>
             <p class="text-sm text-slate-500 mt-0.5">Laporan Fiqri · Sistem Laporan Oplosan</p>

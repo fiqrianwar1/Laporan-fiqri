@@ -30,5 +30,12 @@
             'aktif' => request()->routeIs('manajer.riwayat-order'),
             'icon'  => 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
         ],
+        [
+            'label' => 'Laporan Harian',
+            'desc'  => 'Pantau oplosan harian',
+            'route' => 'manajer.laporan-harian',
+            'aktif' => request()->routeIs('manajer.laporan-harian'),
+            'icon'  => 'M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
+        ],
     ];
 @endphp

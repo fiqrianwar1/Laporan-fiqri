@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <title>Laporan Harian Oplosan</title>
     <style>
-        @page { margin: 0 26px 28px; }
-
-        .top-gap { height: 22px; }
+        /* Nomor halaman di footer ditulis lewat script php, karena DomPDF
+           tidak mendukung at-rule @page { @bottom-center }. */
+        @page { margin: 0 26px 36px; }
 
         * { box-sizing: border-box; }
 
@@ -45,7 +45,10 @@
             object-fit: contain;
             display: block;
             margin: 0 auto;
-        }        .logo .inisial {
+            border-radius: 7px;
+        }
+
+        .logo .inisial {
             display: block;
             color: #1d4ed8;
             font-size: 12px;
@@ -107,7 +110,10 @@
             padding: 3px 9px;
             border-radius: 10px;
             font-size: 8px;
+            margin-right: 5px;
         }
+
+        .meta .badge.kosong { background: #f1f5f9; color: #475569; margin-right: 0; }
 
         .meta .right { text-align: right; color: #94a3b8; }
 
@@ -129,6 +135,25 @@
         .summary .card-amber { background: #fffbeb; border: 1px solid #fde68a; border-top: 3px solid #d97706; }
         .summary .card-violet { background: #f5f3ff; border: 1px solid #ddd6fe; border-top: 3px solid #7c3aed; }
         .summary .card-green { background: #ecfdf5; border: 1px solid #a7f3d0; border-top: 3px solid #059669; }
+
+        /* Titik kecil di atas label, warnanya mengikuti kartunya. */
+        .icon-badge {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 20px;
+            margin-bottom: 6px;
+        }
+
+        .icon-blue { background: #2563eb; }
+        .icon-amber { background: #d97706; }
+        .icon-violet { background: #7c3aed; }
+        .icon-green { background: #059669; }
 
         .summary .label {
             display: block;
@@ -156,7 +181,7 @@
         table.data th,
         table.data td {
             border: 1px solid #d7dee8;
-            padding: 6px 6px;
+            padding: 5px 6px;
             vertical-align: middle;
         }
 
@@ -169,9 +194,13 @@
             letter-spacing: .25px;
         }
 
-        table.data td { font-size: 8px; }
+        table.data td { font-size: 8.4px; }
 
         table.data tbody tr:nth-child(even) td { background: #f5f8ff; }
+
+        .col-no   { width: 4%;  }
+        .col-qty  { width: 8%;  }
+        .col-uang { width: 13%; }
 
         .right { text-align: right; }
         .center { text-align: center; }
@@ -227,19 +256,23 @@
             min-width: 140px;
         }
 
+        /* Teks footer: rata kiri, satu bagian, karena nomor halamannya
+           ditulis terpisah oleh script DomPDF di posisi tetap. */
         .footer {
             position: fixed;
-            bottom: -18px;
+            bottom: -26px;
             left: 0;
             right: 0;
             text-align: center;
             font-size: 7.5px;
             color: #94a3b8;
         }
+
+        /* Baris tanda tangan tidak boleh kepotong ke halaman berikutnya. */
+        .sign { page-break-inside: avoid; }
     </style>
 </head>
 <body>
-    <div class="top-gap"></div>
     <div class="banner">
         <table>
             <tr>
@@ -280,9 +313,7 @@
                     $kodeDokumen = $cabang ? \App\Support\Cabang::singkatan($cabang) : 'ALL';
                 @endphp
                 <span class="badge">No. Dokumen: LHO-{{ $kodeDokumen }}-{{ $tahun }}{{ $namaBulan ? '-' . strtoupper(substr($namaBulan, 0, 3)) : '' }}</span>
-                <span class="badge" style="background:#f1f5f9;color:#475569;">
-                    {{ $cabang ?: 'Seluruh Cabang' }}
-                </span>
+                <span class="badge kosong">{{ $cabang ?: 'Seluruh Cabang' }}</span>
             </td>
             <td class="right">Dicetak: {{ now()->translatedFormat('d F Y, H:i') }} WIB</td>
         </tr>
@@ -291,18 +322,22 @@
     <table class="summary">
         <tr>
             <td class="card-blue">
+                <span class="icon-badge icon-blue">&#8801;</span>
                 <span class="label">Total Pekerjaan</span>
                 <span class="value">{{ number_format($totalBaris) }} baris</span>
             </td>
             <td class="card-amber">
+                <span class="icon-badge icon-amber">&#931;</span>
                 <span class="label">Total Volume</span>
                 <span class="value">{{ number_format($totalVolume) }} CC</span>
             </td>
             <td class="card-violet">
+                <span class="icon-badge icon-violet">&#9201;</span>
                 <span class="label">Total Durasi</span>
                 <span class="value">{{ $totalDurasi > 0 ? number_format($totalDurasi) . ' mnt' : '—' }}</span>
             </td>
             <td class="card-green">
+                <span class="icon-badge icon-green">&#10003;</span>
                 <span class="label">Matching Sama</span>
                 <span class="value">
                     {{ number_format($jumlahSama) }} / {{ number_format($totalBaris) }}
@@ -315,13 +350,13 @@
     <table class="data">
         <thead>
             <tr>
-                <th class="center" style="width: 4%;">No</th>
+                <th class="center col-no">No</th>
                 <th style="width: 9%;">Tanggal</th>
                 <th style="width: 11%;">Plat Nomor</th>
                 <th style="width: 13%;">Kode Warna</th>
                 <th style="width: 13%;">Tipe Mobil</th>
-                <th style="width: 13%;">Bahan Cat</th>
-                <th class="right" style="width: 8%;">Volume</th>
+                <th style="width: 12%;">Bahan Cat</th>
+                <th class="right col-qty">Volume</th>
                 <th class="center" style="width: 7%;">Dibuat</th>
                 <th class="center" style="width: 7%;">Selesai</th>
                 <th class="right" style="width: 7%;">Durasi</th>
@@ -335,7 +370,7 @@
                 @endphp
                 <tr>
                     <td class="center muted">{{ $loop->iteration }}</td>
-                    <td>{{ \App\Support\Tanggal::pendek($item->tanggal) }}</td>
+                    <td class="muted">{{ \App\Support\Tanggal::pendek($item->tanggal) }}</td>
                     <td class="strong">{{ $item->plat_nomor }}</td>
                     <td>{{ $item->kode_warna }}</td>
                     <td>{{ $item->tipe_mobil }}</td>
@@ -380,6 +415,27 @@
         </tr>
     </table>
 
+    @php
+        // Nomor halaman ditulis di sini, bukan di dalam <div class="footer">,
+        // karena DomPDF baru tahu jumlah halaman setelah dokumen selesai
+        // dirender. Teks footer-nya sendiri tetap ada di bawah sebagai teks
+        // biasa, jadi tidak ada placeholder yang tercetak mentah.
+        //
+        // Font diambil lewat $fontMetrics, bukan null: kalau null, DomPDF
+        // justru ikut menulis ulang placeholder "HAL. {PAGE_NUM} ..." apa
+        // adanya dan halaman terakhir jadi kosong.
+        $scriptHalaman = <<<'HTML'
+<script type="text/php">
+    if (isset($pdf)) {
+        $font = $fontMetrics->getFont('DejaVu Sans', 'normal');
+        $pdf->page_text(709, 572, 'HAL. {PAGE_NUM} / {PAGE_COUNT}', $font, 7, [0.58, 0.64, 0.72]);
+    }
+</script>
+HTML;
+    @endphp
+
     <div class="footer">Dokumen dibuat otomatis oleh sistem Laporan Harian Oplosan &mdash; PT. Warna Tanjung Jaya</div>
+
+    {!! $scriptHalaman !!}
 </body>
 </html>

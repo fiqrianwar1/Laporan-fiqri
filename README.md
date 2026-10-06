@@ -1,6 +1,6 @@
 # Laporan Fiqri — Warna Tanjung Jaya
 
-Aplikasi web pencatatan **laporan oplosan (tinting cat)** dan **riwayat order (belanja bahan)** untuk cabang **Wira Toyota Banjarmasin** dan **Wira Toyota Palangka Raya**.
+Aplikasi web pencatatan **laporan harian oplosan**, **laporan oplosan (tinting cat)**, dan **riwayat order (belanja bahan)** untuk cabang **Wira Toyota Banjarmasin** dan **Wira Toyota Palangka Raya**.
 
 Dibuat dengan Laravel 13 + Tailwind CSS 4, dengan tampilan yang menyesuaikan otomatis di HP, tablet, dan desktop.
 
@@ -23,10 +23,19 @@ Rekap belanja bahan & consumable per cabang.
 
 ![Riwayat Order](docs/screenshots/riwayat-order-desktop.png)
 
+### Laporan Harian Oplosan
+Catatan tiap pekerjaan oplosan: unit, bahan, volume, jam kerja, dan hasil matching warna.
+
+![Laporan Harian Oplosan](docs/screenshots/laporan-harian-desktop.png)
+
 ### Mode Manajer
-Tampilan pengawasan — menyorot biaya yang menyimpang dari rata-rata.
+Tampilan pengawasan — menyorot biaya yang menyimpang dari rata-rata dan mutu kerja oplosan.
 
 ![Dashboard Manajer](docs/screenshots/mode-manajer.png)
+
+**Pantau Laporan Harian** — rekap mutu kerja: persentase matching warna, lama pengerjaan, unit tersibuk, dan catatan yang perlu ditelusuri.
+
+![Pantau Laporan Harian](docs/screenshots/mode-manajer-laporan-harian.png)
 
 ### Tampilan di HP
 Bottom navigation, kartu bertumpuk, dan tombol besar supaya nyaman dipakai satu tangan.
@@ -35,6 +44,8 @@ Bottom navigation, kartu bertumpuk, dan tombol besar supaya nyaman dipakai satu 
   <img src="docs/screenshots/dashboard-hp.png" width="300" alt="Dashboard di HP">
   &nbsp;&nbsp;
   <img src="docs/screenshots/laporan-oplosan-hp.png" width="300" alt="Laporan Oplosan di HP">
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/laporan-harian-hp.png" width="300" alt="Laporan Harian Oplosan di HP">
 </p>
 
 ---
@@ -42,6 +53,7 @@ Bottom navigation, kartu bertumpuk, dan tombol besar supaya nyaman dipakai satu 
 ## Fitur
 
 ### Pencatatan
+- **Laporan Harian Oplosan** — catat tiap pekerjaan oplosan harian: tanggal, no. plat, kode warna, tipe mobil, bahan cat, volume (cc), jam dibuat & jam selesai (durasi dihitung otomatis), hasil matching warna (Sama / Mirip / Beda), dan keterangan.
 - **Laporan Oplosan** — catat pemakaian bahan tinting per unit kendaraan (no. plat, kode warna, rincian bahan, qty CC, harga nota).
 - **Riwayat Order** — catat pembelian bahan & consumable (kode barang, qty, satuan, harga, diskon).
 - Satu nota bisa berisi **banyak item**. Item dengan nomor bukti yang sama otomatis digabung jadi satu nota.
@@ -50,6 +62,7 @@ Bottom navigation, kartu bertumpuk, dan tombol besar supaya nyaman dipakai satu 
 
 ### Laporan & Statistik
 - **Dashboard** — ringkasan statistik, tren 6 bulan, barang paling sering dibeli, kode warna terbanyak, aktivitas terbaru.
+- **Rekap Harian** — total pekerjaan, total volume, total/rata-rata durasi, persentase matching sama, rincian per cabang, dan bahan cat terbanyak dipakai.
 - **Filter** berdasarkan bulan, tahun, dan cabang.
 - **Rincian per cabang** — total nota, nilai, dan qty dipisah tiap cabang.
 - **Total per nota** — dihitung dari seluruh item dalam satu nota (setelah diskon).
@@ -59,8 +72,8 @@ Bottom navigation, kartu bertumpuk, dan tombol besar supaya nyaman dipakai satu 
 
 | Role | Bisa melakukan |
 |---|---|
-| **Tinter** | Melihat dashboard + **menambah / mengubah / menghapus** laporan |
-| **Manajer** | Hanya melihat — tampilan khusus pengawasan (deteksi biaya menyimpang) |
+| **Tinter** | Melihat dashboard + **menambah / mengubah / menghapus** laporan (harian, oplosan, order) |
+| **Manajer** | Hanya melihat — tampilan khusus pengawasan (deteksi biaya menyimpang & mutu kerja oplosan) |
 
 ### Tampilan
 - Responsif penuh: **bottom navigation** di HP, sidebar di desktop.
@@ -156,25 +169,31 @@ Kalau HP tidak bisa membuka, jalankan skrip tersebut sebagai **Administrator**.
 app/
   Http/Controllers/
     DashboardController.php        Ringkasan statistik
+    LaporanHarianOplosanController.php  CRUD laporan harian + PDF
     LaporanOplosanController.php   CRUD oplosan + PDF
     RiwayatOrderController.php     CRUD order + PDF
     ManajerController.php          Halaman pengawasan
   Models/
+    LaporanHarianOplosan.php
     LaporanOplosan.php
     RiwayatOrder.php
   Support/
     Cabang.php                     Daftar cabang (satu sumber)
     NotaGrouper.php                Pengelompokan item jadi nota
     FotoNota.php                   Pengolahan foto nota
+    Logo.php                       Path logo untuk kop PDF
     Rupiah.php                     Format angka rupiah
     Tanggal.php                    Format tanggal Indonesia
 
 docs/screenshots/                  Screenshot untuk README
 scripts/
   ambil-screenshot.mjs             Ambil screenshot otomatis (Playwright)
+  buat-logo-png.php                Render logo.svg jadi logo.png untuk PDF
+  render-contoh-pdf.php            Bikin contoh PDF dari data dummy (cek tampilan)
 
 resources/views/
   dashboard.blade.php              Dashboard
+  laporan_harian/                  Halaman & PDF laporan harian
   laporan_oplosan/                 Halaman & PDF oplosan
   riwayat_order/                   Halaman & PDF order
   manajer/                         Halaman mode pantau
@@ -208,7 +227,10 @@ Dropdown filter, form input, dan pengelompokan laporan otomatis ikut menyesuaika
 
 - **Pengelompokan nota** — kunci pengelompokan adalah `nomor bukti + tanggal`, bukan id baris. Jadi satu nota berisi banyak item tetap dihitung **satu nota** di semua total.
 - **Nilai total** — `qty x harga satuan - diskon`, dihitung dari accessor `total_item` / kolom `harga_nota`.
-- **Filter cabang** — memakai kolom `cabang_area` di kedua tabel (`laporan_oplosans` dan `riwayat_orders`).
+- **Filter cabang** — memakai kolom `cabang_area` di ketiga tabel (`laporan_harian_oplosans`, `laporan_oplosans`, dan `riwayat_orders`).
+- **Laporan harian tanpa nota** — satu baris tabel = satu pekerjaan oplosan, jadi tidak ada pengelompokan nota seperti dua laporan lainnya.
+- **Durasi otomatis** — kalau kolom durasi dikosongkan, `LaporanHarianOplosan::hitungDurasi()` menghitungnya dari jam dibuat & jam selesai (jam selesai lebih awal dianggap lewat tengah malam).
+- **Logo PDF** — `App\Support\Logo::path()` mengembalikan path file (bukan data-URI) karena DomPDF menolak data-URI base64. Logo PNG-nya dibuat lewat `php scripts/buat-logo-png.php`.
 
 ---
 

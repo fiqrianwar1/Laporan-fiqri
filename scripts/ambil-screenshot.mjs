@@ -48,6 +48,9 @@ await jepret(tinter, 'laporan-oplosan-desktop')
 await tinter.goto(`${BASE}/riwayat-order`, { waitUntil: 'networkidle' })
 await jepret(tinter, 'riwayat-order-desktop')
 
+await tinter.goto(`${BASE}/laporan-harian`, { waitUntil: 'networkidle' })
+await jepret(tinter, 'laporan-harian-desktop', { penuh: true })
+
 // ---------- Mobile ----------
 const ctxHp = await browser.newContext({
   viewport: { width: 412, height: 900 },
@@ -64,6 +67,9 @@ await jepret(hp, 'dashboard-hp', { lebar: 412, tinggi: 900 })
 await hp.goto(`${BASE}/laporan-oplosan`, { waitUntil: 'networkidle' })
 await jepret(hp, 'laporan-oplosan-hp', { lebar: 412, tinggi: 900 })
 
+await hp.goto(`${BASE}/laporan-harian`, { waitUntil: 'networkidle' })
+await jepret(hp, 'laporan-harian-hp', { lebar: 412, tinggi: 900 })
+
 // ---------- Mode manajer (hanya lihat) ----------
 const ctxManajer = await browser.newContext({ viewport: { width: 1500, height: 940 } })
 const manajer = await ctxManajer.newPage()
@@ -71,6 +77,9 @@ await masuk(manajer, AKUN.manajer)
 
 await manajer.goto(`${BASE}/manajer`, { waitUntil: 'networkidle' })
 await jepret(manajer, 'mode-manajer')
+
+await manajer.goto(`${BASE}/manajer/laporan-harian`, { waitUntil: 'networkidle' })
+await jepret(manajer, 'mode-manajer-laporan-harian', { penuh: true })
 
 await browser.close()
 console.log('\nSelesai. Semua screenshot tersimpan di', OUT)

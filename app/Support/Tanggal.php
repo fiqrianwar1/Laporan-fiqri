@@ -22,4 +22,13 @@ class Tanggal
             ? $tanggal->copy()->locale('id')->translatedFormat('j F Y')
             : '-';
     }
+
+    /**
+     * Tanggal ringkas untuk tabel PDF (mis. "05/10/2026"), dipakai saat
+     * kolomnya sempit dan tanggal lengkap bikin tabel berdesakan.
+     */
+    public static function pendek(?Carbon $tanggal): string
+    {
+        return $tanggal ? $tanggal->format('d/m/Y') : '-';
+    }
 }
