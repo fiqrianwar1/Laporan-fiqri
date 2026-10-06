@@ -188,8 +188,10 @@ app/
 docs/screenshots/                  Screenshot untuk README
 scripts/
   ambil-screenshot.mjs             Ambil screenshot otomatis (Playwright)
-  buat-logo-png.php                Render logo.svg jadi logo.png untuk PDF
   render-contoh-pdf.php            Bikin contoh PDF dari data dummy (cek tampilan)
+
+public/images/
+  logo.jpg                        Logo untuk sidebar & kop PDF
 
 resources/views/
   dashboard.blade.php              Dashboard
@@ -230,7 +232,7 @@ Dropdown filter, form input, dan pengelompokan laporan otomatis ikut menyesuaika
 - **Filter cabang** — memakai kolom `cabang_area` di ketiga tabel (`laporan_harian_oplosans`, `laporan_oplosans`, dan `riwayat_orders`).
 - **Laporan harian tanpa nota** — satu baris tabel = satu pekerjaan oplosan, jadi tidak ada pengelompokan nota seperti dua laporan lainnya.
 - **Durasi otomatis** — kalau kolom durasi dikosongkan, `LaporanHarianOplosan::hitungDurasi()` menghitungnya dari jam dibuat & jam selesai (jam selesai lebih awal dianggap lewat tengah malam).
-- **Logo PDF** — `App\Support\Logo::path()` mengembalikan path file (bukan data-URI) karena DomPDF menolak data-URI base64. Logo PNG-nya dibuat lewat `php scripts/buat-logo-png.php`.
+- **Logo** — `App\Support\Logo::path()` mengembalikan path file (bukan data-URI) karena DomPDF menolak data-URI base64. Lambangnya ditaruh di `public/images/logo.jpg` dan dipakai seragam oleh sidebar, halaman login, serta kop ketiga PDF.
 
 ---
 

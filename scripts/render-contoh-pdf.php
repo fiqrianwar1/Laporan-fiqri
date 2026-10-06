@@ -99,3 +99,46 @@ foreach (['laporan_oplosan.pdf' => 'contoh-laporan-oplosan.pdf'] as $view => $na
 
     echo $nama.' -> '.$hasil.'/'.$nama.PHP_EOL;
 }
+
+// ---------- Contoh laporan harian (rekap per pekerjaan, bukan per nota) ----------
+$harian = collect([
+    ['2026-10-02', 'DA 1424 PF', 'Black Doff', 'Avanza', 'Wanda SB', 250, '08:15', '09:00', 'Sama'],
+    ['2026-10-02', 'F 1361 FBZ', '3Q3', 'Innova', 'Autobase', 320, '09:40', '10:35', 'Sama'],
+    ['2026-10-03', 'D 1524 AMQ', 'Jet Black', 'Rush', 'Wanda 2K', 180, '14:10', '15:05', 'Mirip'],
+    ['2026-10-03', 'DA 1818 LO', '1G3', 'Calya', 'Autocryl', 140, '15:30', '16:10', 'Sama'],
+])->map(function ($b, $i) use ($bjm, $pal) {
+    $durasi = App\Models\LaporanHarianOplosan::hitungDurasi($b[6], $b[7]);
+
+    return (object) [
+        'tanggal' => Carbon::parse($b[0]),
+        'plat_nomor' => $b[1],
+        'kode_warna' => $b[2],
+        'tipe_mobil' => $b[3],
+        'bahan_cat' => $b[4],
+        'volume_cc' => $b[5],
+        'jam_dibuat' => $b[6],
+        'jam_selesai' => $b[7],
+        'durasi_menit' => $durasi,
+        'hasil_matching' => $b[8],
+        'keterangan' => null,
+        'cabang_area' => $i < 2 ? $bjm : $pal,
+    ];
+});
+
+$dataHarian = [
+    'baris' => $harian,
+    'totalBaris' => $harian->count(),
+    'totalVolume' => $harian->sum('volume_cc'),
+    'totalDurasi' => $harian->sum('durasi_menit'),
+    'jumlahSama' => $harian->where('hasil_matching', 'Sama')->count(),
+    'namaBulan' => 'Oktober',
+    'tahun' => '2026',
+    'cabang' => null,
+];
+
+$namaHarian = 'contoh-laporan-harian-oplosan.pdf';
+$pdfHarian = Pdf::loadView('laporan_harian.pdf', $dataHarian)->setPaper('a4', 'landscape');
+$pdfHarian->setOption('isPhpEnabled', true);
+$pdfHarian->save($hasil.'/'.$namaHarian);
+
+echo $namaHarian.' -> '.$hasil.'/'.$namaHarian.PHP_EOL;

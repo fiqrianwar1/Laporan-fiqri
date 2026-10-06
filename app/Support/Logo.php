@@ -10,24 +10,21 @@ namespace App\Support;
  * mengembalikan PATH file (bukan data-URI), dan view PDF memakai
  * src="{{ \App\Support\Logo::path() }}".
  *
- * File logo dicari berurutan: logo.png, logo.webp, logo.jpeg, logo.svg,
- * logo.jpg. Yang pertama ditemukan itulah yang dipakai.
+ * File logo dicari berurutan: logo.jpg, logo.jpeg, logo.png, logo.webp,
+ * logo.svg. Yang pertama ditemukan itulah yang dipakai.
  */
 class Logo
 {
     /**
      * Daftar nama file yang dicoba, berurutan dari yang paling diutamakan.
      *
-     * PNG didahulukan karena DomPDF paling andal menggambarnya. SVG tetap
-     * disediakan (logo.svg) sebagai sumber asli lambang, tapi duelunya
-     * dirender jadi PNG dulu lewat scripts/buat-logo-png.php.
-     *
-     * File logo.jpg bisa saja berupa foto unit (bukan lambang), jadi
-     * ditaruh paling akhir.
+     * logo.jpg dipakai lebih dulu karena itu logo resmi yang diunggah ke
+     * public/images. JPEG juga aman digambar DomPDF. Sisanya (jpeg/png/webp/
+     * svg) tinggal cadangan kalau sewaktu-waktu lambangnya diganti format.
      *
      * @var array<int, string>
      */
-    protected const KANDIDAT = ['logo.png', 'logo.webp', 'logo.jpeg', 'logo.svg', 'logo.jpg'];
+    protected const KANDIDAT = ['logo.jpg', 'logo.jpeg', 'logo.png', 'logo.webp', 'logo.svg'];
 
     /**
      * Path lengkap file logo yang dipakai view PDF, atau null kalau tidak ada.
