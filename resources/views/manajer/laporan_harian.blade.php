@@ -329,13 +329,18 @@
         <div class="card overflow-hidden">
             <div class="card-head flex">
                 <div>
-                    <h2 class="card-title">Catatan Harian Terbaru</h2>
-                    <p class="card-sub">20 pekerjaan terakhir pada periode ini. Mode pantau - data tidak diubah dari sini.</p>
+                    <h2 class="card-title">Catatan Harian</h2>
+                    <p class="card-sub">Satu tanggal = satu blok berisi pekerjaan oplosan hari itu. Mode pantau - data tidak diubah dari sini.</p>
                 </div>
-                <span class="pill pill-emerald">{{ number_format($jumlahBaris) }} Baris</span>
+                <span class="pill pill-emerald">
+                    {{ number_format($jumlahHari) }} Hari
+                    @if ($hari->lastPage() > 1)
+                        &middot; hal. {{ $hari->currentPage() }}/{{ $hari->lastPage() }}
+                    @endif
+                </span>
             </div>
 
-            @if ($baris->isEmpty())
+            @if ($hari->isEmpty())
                 <div class="px-6 py-14">
                     <div class="mx-auto flex max-w-sm flex-col items-center text-center">
                         <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 shadow-inner">
@@ -349,63 +354,123 @@
                     </div>
                 </div>
             @else
+                {{-- Satu tanggal = satu kartu yang bisa dibuka-tutup, isinya
+                     seluruh pekerjaan hari itu. --}}
                 <div class="divide-y divide-slate-100">
-                    @foreach ($baris as $item)
+                    @foreach ($hari as $blok)
                         @php
-                            $warnaMatching = [
-                                'Sama'  => 'pill-emerald',
-                                'Mirip' => 'pill-amber',
-                                'Beda'  => 'pill-rose',
-                            ][$item->hasil_matching] ?? 'pill-slate';
+                            $persenHari = $blok['jumlahItem'] > 0
+                                ? round(($blok['sama'] / $blok['jumlahItem']) * 100)
+                                : 0;
+                            $platHari = $blok['items']->pluck('plat_nomor')->filter()->unique()->values();
+                            $cabangHari = $blok['items']->pluck('cabang_area')->filter()->unique()->values();
                         @endphp
-                        <div class="px-4 py-3.5 transition-colors hover:bg-slate-50/60 sm:px-5">
-                            <div class="flex flex-wrap items-start justify-between gap-3">
-                                <div class="min-w-0 flex-1">
-                                    <div class="flex flex-wrap items-center gap-2">
-                                        <span class="inline-flex items-center gap-1.5 text-sm font-bold text-slate-900">
-                                            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-slate-700 to-slate-900 text-[11px] font-bold text-white">
-                                                {{ $item->plat_nomor ? strtoupper(substr($item->plat_nomor, 0, 3)) : '—' }}
-                                            </span>
-                                            {{ $item->plat_nomor }}
-                                        </span>
-                                        <span class="pill pill-blue">{{ $item->kode_warna }}</span>
-                                        <span class="{{ $warnaMatching }} pill">{{ $item->hasil_matching }}</span>
-                                    </div>
-                                    <p class="mt-1.5 truncate text-xs text-slate-500">
-                                        {{ $item->tipe_mobil }}
-                                        <span class="mx-1 text-slate-300">•</span>
-                                        {{ \App\Support\Tanggal::panjang($item->tanggal) }}
-                                        @if ($item->cabang_area)
-                                            <span class="mx-1 text-slate-300">•</span>
-                                            {{ $item->cabang_area }}
-                                        @endif
-                                    </p>
+                        <div class="bg-white/70 transition hover:bg-white">
+                            <div class="flex flex-wrap items-center gap-3 px-4 py-4 sm:px-5">
+                                <div class="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 text-white shadow-md shadow-slate-800/25">
+                                    <span class="text-base font-extrabold leading-none">{{ $blok['tanggal']?->format('d') ?? '—' }}</span>
+                                    <span class="text-[9px] font-semibold uppercase leading-tight">{{ $blok['tanggal']?->translatedFormat('M') }}</span>
                                 </div>
 
-                                <div class="text-right">
-                                    <p class="angka text-base font-extrabold text-slate-900">{{ number_format($item->volume_cc) }} cc</p>
+                                <div class="min-w-0 flex-1">
+                                    <p class="truncate text-sm font-bold text-slate-800">{{ \App\Support\Tanggal::panjang($blok['tanggal']) }}</p>
+                                    <p class="truncate text-[11px] text-slate-500">
+                                        <span class="font-bold text-slate-700">{{ $blok['jumlahItem'] }} pekerjaan</span>
+                                        &middot; {{ number_format($blok['volume']) }} cc
+                                        @if ($platHari->isNotEmpty())
+                                            &middot; {{ $platHari->take(3)->implode(' · ') }}{{ $platHari->count() > 3 ? ' +' . ($platHari->count() - 3) . ' lainnya' : '' }}
+                                        @endif
+                                    </p>
+                                    @if ($cabangHari->isNotEmpty())
+                                        <span class="mt-1.5 inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 ring-1 ring-slate-200">
+                                            <svg class="h-2.5 w-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/>
+                                            </svg>
+                                            {{ $cabangHari->implode(', ') }}
+                                        </span>
+                                    @endif
+                                </div>
+
+                                <div class="shrink-0 text-right">
+                                    <p class="angka text-base font-extrabold text-slate-900">{{ number_format($blok['volume']) }} cc</p>
                                     <p class="text-[11px] text-slate-500">
-                                        {{ $item->jam_dibuat ? \Illuminate\Support\Str::of($item->jam_dibuat)->substr(0, 5) : '—' }}
-                                        @if ($item->jam_selesai)
-                                            &rarr; {{ \Illuminate\Support\Str::of($item->jam_selesai)->substr(0, 5) }}
-                                        @endif
-                                        @if ($item->durasi_menit !== null)
-                                            <span class="font-semibold text-slate-600">({{ $item->durasi_menit }} mnt)</span>
-                                        @endif
+                                        <span class="font-bold {{ $persenHari === 100 ? 'text-emerald-600' : 'text-amber-600' }}">{{ $persenHari }}% sama</span>
                                     </p>
                                 </div>
                             </div>
 
-                            <p class="mt-2.5 truncate text-xs text-slate-600">
-                                <span class="font-semibold text-slate-500">Bahan:</span> {{ $item->bahan_cat }}
-                                @if ($item->keterangan)
-                                    <span class="mx-1 text-slate-300">•</span>
-                                    <span class="text-slate-500">{{ $item->keterangan }}</span>
-                                @endif
-                            </p>
+                            <details class="group">
+                                <summary class="btn-detail cursor-pointer list-none marker:hidden">
+                                    <span class="transition group-open:rotate-90">
+                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 5 7 7-7 7"/>
+                                        </svg>
+                                    </span>
+                                    <span class="group-open:hidden">Buka rincian pekerjaan ({{ $blok['jumlahItem'] }})</span>
+                                    <span class="hidden group-open:inline">Tutup rincian pekerjaan</span>
+                                </summary>
+
+                                <div class="divide-y divide-slate-100 border-t border-slate-200/60 bg-slate-50/40">
+                                    @foreach ($blok['items'] as $item)
+                                        @php
+                                            $warnaMatching = [
+                                                'Sama'  => 'pill-emerald',
+                                                'Mirip' => 'pill-amber',
+                                                'Beda'  => 'pill-rose',
+                                            ][$item->hasil_matching] ?? 'pill-slate';
+                                        @endphp
+                                        <div class="px-4 py-3.5 sm:px-5">
+                                            <div class="flex flex-wrap items-start justify-between gap-3">
+                                                <div class="min-w-0 flex-1">
+                                                    <div class="flex flex-wrap items-center gap-2">
+                                                        <span class="inline-flex items-center gap-1.5 text-sm font-bold text-slate-900">
+                                                            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-slate-700 to-slate-900 text-[11px] font-bold text-white">
+                                                                {{ $item->plat_nomor ? strtoupper(substr($item->plat_nomor, 0, 3)) : '—' }}
+                                                            </span>
+                                                            {{ $item->plat_nomor }}
+                                                        </span>
+                                                        <span class="pill pill-blue">{{ $item->kode_warna }}</span>
+                                                        <span class="{{ $warnaMatching }} pill">{{ $item->hasil_matching }}</span>
+                                                    </div>
+                                                    <p class="mt-1.5 truncate text-xs text-slate-500">
+                                                        {{ $item->tipe_mobil }}
+                                                        @if ($item->cabang_area)
+                                                            <span class="mx-1 text-slate-300">•</span>
+                                                            {{ $item->cabang_area }}
+                                                        @endif
+                                                    </p>
+                                                </div>
+
+                                                <div class="text-right">
+                                                    <p class="angka text-base font-extrabold text-slate-900">{{ number_format($item->volume_cc) }} cc</p>
+                                                    <p class="text-[11px] text-slate-500">
+                                                        {{ $item->jam_dibuat ? \Illuminate\Support\Str::of($item->jam_dibuat)->substr(0, 5) : '—' }}
+                                                        @if ($item->jam_selesai)
+                                                            &rarr; {{ \Illuminate\Support\Str::of($item->jam_selesai)->substr(0, 5) }}
+                                                        @endif
+                                                        @if ($item->durasi_menit !== null)
+                                                            <span class="font-semibold text-slate-600">({{ $item->durasi_menit }} mnt)</span>
+                                                        @endif
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <p class="mt-2.5 truncate text-xs text-slate-600">
+                                                <span class="font-semibold text-slate-500">Bahan:</span> {{ $item->bahan_cat }}
+                                                @if ($item->keterangan)
+                                                    <span class="mx-1 text-slate-300">•</span>
+                                                    <span class="text-slate-500">{{ $item->keterangan }}</span>
+                                                @endif
+                                            </p>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </details>
                         </div>
                     @endforeach
                 </div>
+
+                <x-pager :paginator="$hari" anchor="daftar-pantau-harian" />
             @endif
         </div>
     </div>

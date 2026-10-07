@@ -1,6 +1,6 @@
 # Laporan Fiqri — Warna Tanjung Jaya
 
-Aplikasi web pencatatan **laporan harian oplosan**, **laporan oplosan (tinting cat)**, dan **riwayat order (belanja bahan)** untuk cabang **Wira Toyota Banjarmasin** dan **Wira Toyota Palangka Raya**.
+Aplikasi web pencatatan **laporan harian oplosan**, **laporan oplosan (tinting cat)**, **riwayat order (belanja bahan)**, dan **surat jalan (barang keluar gudang)** untuk cabang **Wira Toyota Banjarmasin** dan **Wira Toyota Palangka Raya**.
 
 Dibuat dengan Laravel 13 + Tailwind CSS 4, dengan tampilan yang menyesuaikan otomatis di HP, tablet, dan desktop.
 
@@ -28,9 +28,16 @@ Catatan tiap pekerjaan oplosan: unit, bahan, volume, jam kerja, dan hasil matchi
 
 ![Laporan Harian Oplosan](docs/screenshots/laporan-harian-desktop.png)
 
-Daftarnya dipotong 10 baris per halaman supaya tidak memanjang:
+Daftarnya dipotong 10 tanggal per halaman supaya tidak memanjang, dan satu tanggal tampil sebagai
+satu blok berisi semua pekerjaan hari itu:
 
 ![Laporan Harian Oplosan halaman 2](docs/screenshots/laporan-harian-desktop-hal2.png)
+
+### Surat Jalan
+Rekap barang keluar gudang. Satu nomor surat tampil sebagai satu kartu berisi seluruh barangnya
+(kode barang, nama, kemasan, jumlah, asal penyimpanan, keterangan).
+
+![Surat Jalan](docs/screenshots/surat-jalan-desktop.png)
 
 ### Mode Manajer
 Tampilan pengawasan — menyorot biaya yang menyimpang dari rata-rata dan mutu kerja oplosan.
@@ -60,7 +67,8 @@ Bottom navigation, kartu bertumpuk, dan tombol besar supaya nyaman dipakai satu 
 - **Laporan Harian Oplosan** — catat tiap pekerjaan oplosan harian: tanggal, no. plat, kode warna, tipe mobil, bahan cat, volume (cc), jam dibuat & jam selesai (durasi dihitung otomatis), hasil matching warna (Sama / Mirip / Beda), dan keterangan.
 - **Laporan Oplosan** — catat pemakaian bahan tinting per unit kendaraan (no. plat, kode warna, rincian bahan, qty CC, harga nota).
 - **Riwayat Order** — catat pembelian bahan & consumable (kode barang, qty, satuan, harga, diskon).
-- Satu nota bisa berisi **banyak item**. Item dengan nomor bukti yang sama otomatis digabung jadi satu nota.
+- **Surat Jalan** — catat barang keluar gudang (no. surat, tanggal, cabang, kode barang, nama barang/cat, kemasan, jumlah, asal penyimpanan, keterangan).
+- Satu nota / surat bisa berisi **banyak item**. Item dengan nomor bukti (atau nomor surat) yang sama otomatis digabung jadi satu kartu.
 - Upload foto nota/faktur.
 - Nomor urut otomatis bila dikosongkan.
 
@@ -75,7 +83,8 @@ Bottom navigation, kartu bertumpuk, dan tombol besar supaya nyaman dipakai satu 
 ### Daftar Panjang
 Daftar yang isinya sudah menumpuk tidak dibentangkan semua — dipotong per halaman supaya halaman tetap pendek dan enak dilihat:
 
-- **Laporan harian** — 10 baris per halaman.
+- **Laporan harian** — 10 tanggal per halaman (satu tanggal = satu blok, dipaginasi per hari).
+- **Laporan oplosan, riwayat order, surat jalan** — 10 nota / surat per halaman.
 - **Dashboard, aktivitas terbaru** — 6 catatan oplosan & 5 nota order per halaman, dengan penomoran halaman terpisah supaya membuka halaman oplosan tidak menggeser daftar order.
 - Nota di dashboard dipotong **per nota**, bukan per baris item, jadi satu nota berisi 7 barang tetap utuh dalam satu halaman.
 
@@ -83,7 +92,7 @@ Daftar yang isinya sudah menumpuk tidak dibentangkan semua — dipotong per hala
 
 | Role | Bisa melakukan |
 |---|---|
-| **Tinter** | Melihat dashboard + **menambah / mengubah / menghapus** laporan (harian, oplosan, order) |
+| **Tinter** | Melihat dashboard + **menambah / mengubah / menghapus** laporan (harian, oplosan, order, surat jalan) |
 | **Manajer** | Hanya melihat — tampilan khusus pengawasan (deteksi biaya menyimpang & mutu kerja oplosan) |
 
 ### Tampilan
@@ -184,14 +193,17 @@ app/
     LaporanHarianOplosanController.php  CRUD laporan harian + PDF
     LaporanOplosanController.php   CRUD oplosan + PDF
     RiwayatOrderController.php     CRUD order + PDF
+    SuratJalanController.php       CRUD surat jalan + PDF
     ManajerController.php          Halaman pengawasan
   Models/
     LaporanHarianOplosan.php
     LaporanOplosan.php
     RiwayatOrder.php
+    SuratJalan.php
   Support/
     Cabang.php                     Daftar cabang (satu sumber)
-    NotaGrouper.php                Pengelompokan item jadi nota
+    NotaGrouper.php                Pengelompokan item jadi nota / surat
+    HarianGrouper.php              Pengelompokan laporan harian per tanggal
     FotoNota.php                   Pengolahan foto nota
     Logo.php                       Path logo untuk kop PDF
     Rupiah.php                     Format angka rupiah
@@ -210,6 +222,7 @@ resources/views/
   laporan_harian/                  Halaman & PDF laporan harian
   laporan_oplosan/                 Halaman & PDF oplosan
   riwayat_order/                   Halaman & PDF order
+  surat_jalan/                     Halaman & PDF surat jalan
   manajer/                         Halaman mode pantau
   layouts/                         Layout utama & manajer
 
@@ -241,10 +254,11 @@ Dropdown filter, form input, dan pengelompokan laporan otomatis ikut menyesuaika
 
 - **Pengelompokan nota** — kunci pengelompokan adalah `nomor bukti + tanggal`, bukan id baris. Jadi satu nota berisi banyak item tetap dihitung **satu nota** di semua total.
 - **Nilai total** — `qty x harga satuan - diskon`, dihitung dari accessor `total_item` / kolom `harga_nota`.
-- **Filter cabang** — memakai kolom `cabang_area` di ketiga tabel (`laporan_harian_oplosans`, `laporan_oplosans`, dan `riwayat_orders`).
-- **Laporan harian tanpa nota** — satu baris tabel = satu pekerjaan oplosan, jadi tidak ada pengelompokan nota seperti dua laporan lainnya.
+- **Filter cabang** — memakai kolom `cabang_area` di keempat tabel (`laporan_harian_oplosans`, `laporan_oplosans`, `riwayat_orders`, dan `surat_jalans`).
+- **Laporan harian per tanggal** — dikelompokkan lewat `App\Support\HarianGrouper`, satu tanggal = satu blok. Tidak ada nomor nota, jadi kuncinya murni tanggal.
+- **Surat jalan per nomor surat** — dikelompokkan lewat `App\Support\NotaGrouper` dengan kunci `nomor surat + tanggal`, jadi satu surat berisi banyak barang tetap dihitung satu surat.
 - **Durasi otomatis** — kalau kolom durasi dikosongkan, `LaporanHarianOplosan::hitungDurasi()` menghitungnya dari jam dibuat & jam selesai (jam selesai lebih awal dianggap lewat tengah malam).
-- **Logo** — `App\Support\Logo::path()` mengembalikan path file (bukan data-URI) karena DomPDF menolak data-URI base64. Lambangnya ditaruh di `public/images/logo.jpg` dan dipakai seragam oleh sidebar, halaman login, serta kop ketiga PDF.
+- **Logo** — `App\Support\Logo::path()` mengembalikan path file (bukan data-URI) karena DomPDF menolak data-URI base64. Lambangnya ditaruh di `public/images/logo.jpg` dan dipakai seragam oleh sidebar, halaman login, serta kop keempat PDF.
 
 ---
 

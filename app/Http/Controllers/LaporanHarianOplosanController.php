@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\RiwayatOrderController;
 use App\Models\LaporanHarianOplosan;
 use App\Support\Cabang;
+use App\Support\HarianGrouper;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -59,6 +61,24 @@ class LaporanHarianOplosanController extends Controller
     }
 
     /**
+     * Jumlah hari per halaman di daftar laporan harian.
+     *
+     * Satu halaman = 10 tanggal, tiap tanggal memuat semua pekerjaan hari itu
+     * dalam satu kartu. Dipaginasi PER HARI supaya pekerjaan satu tanggal tidak
+     * terbelah ke halaman berikutnya - sama seperti daftar oplosan yang
+     * dipaginasi per nota.
+     */
+    public const HARI_PER_HALAMAN = 10;
+
+    /**
+     * Kelompokkan baris laporan harian menjadi blok per tanggal.
+     */
+    protected function groupedHari($baris)
+    {
+        return HarianGrouper::group($baris);
+    }
+
+    /**
      * Tampilkan rekap harian oplosan + ringkasan.
      */
     public function index(Request $request)
@@ -69,12 +89,15 @@ class LaporanHarianOplosanController extends Controller
 
         $semua = $this->filteredQuery($request)->get();
 
-        // Tabel daftar dipaginasi supaya halaman tetap ringan walau data harian
-        // sudah menumpuk berbulan-bulan; ringkasan tetap dihitung dari seluruh
-        // data periode terpilih (bukan hanya halaman yang tampil).
-        // 10 baris per halaman - cukup untuk sekilas lihat, tapi tidak bikin
-        // halaman jadi panjang kalau catatannya sudah ratusan.
-        $barisHalaman = $this->filteredQuery($request)->paginate(10)->withQueryString();
+        // Daftar ditampilkan sebagai blok per hari, jadi paginasi pun per hari -
+        // 10 tanggal per halaman, bukan 10 baris. Ringkasan tetap dihitung dari
+        // seluruh data periode terpilih (bukan hanya halaman yang tampil).
+        $semuaHari = $this->groupedHari($semua);
+        $hariHalaman = RiwayatOrderController::paginateNotas(
+            $semuaHari,
+            self::HARI_PER_HALAMAN,
+            $request,
+        );
 
         $totalBaris = $semua->count();
         $totalVolume = $semua->sum('volume_cc');
@@ -111,7 +134,7 @@ class LaporanHarianOplosanController extends Controller
             ->values();
 
         return view('laporan_harian.index', compact(
-            'barisHalaman', 'totalBaris', 'totalVolume', 'totalDurasi', 'persenSama',
+            'hariHalaman', 'totalBaris', 'totalVolume', 'totalDurasi', 'persenSama',
             'perCabang', 'perBahan', 'bulan', 'tahun', 'cabang'
         ));
     }
@@ -227,6 +250,10 @@ class LaporanHarianOplosanController extends Controller
     {
         $baris = $this->filteredQuery($request)->get();
 
+        // Di PDF, satu tanggal jadi satu blok berisi semua pekerjaan hari itu,
+        // jadi tidak ada lagi pekerjaan yang tercetak terpisah-pisah.
+        $hari = $this->groupedHari($baris);
+
         $totalBaris = $baris->count();
         $totalVolume = $baris->sum('volume_cc');
         $totalDurasi = $baris->sum('durasi_menit');
@@ -241,7 +268,7 @@ class LaporanHarianOplosanController extends Controller
             : null;
 
         $data = compact(
-            'baris', 'totalBaris', 'totalVolume', 'totalDurasi', 'jumlahSama',
+            'baris', 'hari', 'totalBaris', 'totalVolume', 'totalDurasi', 'jumlahSama',
             'namaBulan', 'tahun', 'cabang'
         );
 

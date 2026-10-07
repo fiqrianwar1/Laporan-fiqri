@@ -37,5 +37,12 @@
             'aktif' => request()->routeIs('manajer.laporan-harian'),
             'icon'  => 'M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
         ],
+        [
+            'label' => 'Surat Jalan',
+            'desc'  => 'Pantau barang keluar',
+            'route' => 'manajer.surat-jalan',
+            'aktif' => request()->routeIs('manajer.surat-jalan'),
+            'icon'  => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+        ],
     ];
 @endphp

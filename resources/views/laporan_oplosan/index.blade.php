@@ -232,7 +232,12 @@
                         <span class="font-semibold text-slate-600">total satu nota</span>, bukan per item.
                     </p>
                 </div>
-                <span class="pill pill-slate">{{ number_format($notas->total()) }} Nota</span>
+                <span class="pill pill-slate">
+                    {{ number_format($notas->total()) }} Nota
+                    @if ($notas->lastPage() > 1)
+                        &middot; hal. {{ $notas->currentPage() }}/{{ $notas->lastPage() }}
+                    @endif
+                </span>
             </div>
 
             @if ($notas->isEmpty())
@@ -270,11 +275,7 @@
                 </div>
 
             @endif
-            @if ($notas->hasPages())
-                <div class="border-t border-slate-200/60 px-3 py-4 sm:px-6">
-                    {{ $notas->links() }}
-                </div>
-            @endif
+            <x-pager :paginator="$notas" anchor="daftar-oplosan" />
         </div>
     </div>
 @endsection

@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\LaporanHarianOplosan;
 use App\Models\LaporanOplosan;
 use App\Models\RiwayatOrder;
+use App\Models\SuratJalan;
 use App\Support\Cabang;
+use App\Support\HarianGrouper;
 use App\Support\NotaGrouper;
 use App\Support\Tanggal;
 use Illuminate\Http\Request;
@@ -19,6 +21,17 @@ use Illuminate\Http\Request;
  */
 class ManajerController extends Controller
 {
+    /**
+     * Jumlah tanggal (hari) per halaman di daftar pantau laporan harian.
+     * Disamakan dengan halaman tinter supaya panjang halamannya seragam.
+     */
+    public const HARI_PER_HALAMAN = LaporanHarianOplosanController::HARI_PER_HALAMAN;
+
+    /**
+     * Jumlah surat per halaman di daftar pantau surat jalan.
+     */
+    public const SURAT_JALAN_PER_HALAMAN = SuratJalanController::SURAT_PER_HALAMAN;
+
     /**
      * Ambil daftar bulan + tahun yang benar-benar ada datanya.
      * Dipakai untuk mengisi dropdown filter di semua halaman manajer.
@@ -302,7 +315,7 @@ class ManajerController extends Controller
 
         return view('manajer.riwayat_order', [
             // Dipaginasi per nota supaya barang satu nota tidak terpisah halaman.
-            'notas'       => RiwayatOrderController::paginateNotas($semuaNota, 10, $request),
+            'notas'       => RiwayatOrderController::paginateNotas($semuaNota, RiwayatOrderController::NOTA_PER_HALAMAN, $request),
             'jumlahNota'  => $semuaNota->count(),
             'totalNilaiNota' => $semuaNota->sum('total'),
             'perCabang'   => $this->ringkasanPerCabang($semuaNota),
@@ -370,7 +383,7 @@ class ManajerController extends Controller
         );
 
         return view('manajer.laporan_oplosan', [
-            'notas'       => RiwayatOrderController::paginateNotas($notas, 10, $request),
+            'notas'       => RiwayatOrderController::paginateNotas($notas, RiwayatOrderController::NOTA_PER_HALAMAN, $request),
             'jumlahNota'  => $notas->count(),
             'totalNilaiNota' => $notas->sum('total'),
             'perCabang'   => $this->ringkasanPerCabang($notas),
@@ -442,8 +455,18 @@ class ManajerController extends Controller
 
         $periode = $this->pilihanPeriode();
 
+        // Sama seperti halaman tinter: daftar pantau pun dikelompokkan per
+        // tanggal, jadi satu hari tampil sebagai satu blok berisi semua
+        // pekerjaannya - bukan deretan baris yang lepas-lepas.
+        $semuaHari = HarianGrouper::group($semua);
+
         return view('manajer.laporan_harian', [
-            'baris'        => $semua->sortByDesc('tanggal')->take(20)->values(),
+            'hari'         => RiwayatOrderController::paginateNotas(
+                $semuaHari->reverse()->values(),
+                self::HARI_PER_HALAMAN,
+                $request,
+            ),
+            'jumlahHari'   => $semuaHari->count(),
             'jumlahBaris'  => $totalBaris,
             'totalVolume'  => $semua->sum('volume_cc'),
             'totalDurasi'  => $totalDurasi,
@@ -467,6 +490,86 @@ class ManajerController extends Controller
             'daftarTahun'  => $periode['daftarTahun'],
             'namaBulan'    => $periode['namaBulan'],
         ]);
+    }
+
+    /**
+     * ================= SURAT JALAN (PANTAU) =================
+     * Rekap barang keluar gudang. Yang disorot: ke mana barang dikirim,
+     * barang apa yang paling sering keluar, dan surat dengan jumlah terbesar
+     * supaya mudah ditelusuri.
+     */
+    public function suratJalan(Request $request)
+    {
+        $bulan = $request->input('bulan');
+        $tahun = $request->input('tahun');
+        $cabang = $request->input('cabang');
+
+        $semua = $this->filterPeriode(SuratJalan::query(), $bulan, $tahun, $cabang)
+            ->orderBy('tanggal')->orderBy('nomor_urut')->orderBy('id')->get();
+
+        $totalBaris = $semua->count();
+        $totalJumlah = $semua->sum('jumlah');
+
+        // Dikelompokkan per surat, sama seperti halaman tinter: satu surat
+        // jadi satu blok berisi semua barangnya.
+        $semuaSurat = $this->kelompokkanSurat($semua);
+        $totalSurat = $semuaSurat->count();
+
+        // Barang yang paling sering keluar gudang.
+        $perBarang = $semua
+            ->groupBy('nama_barang')
+            ->map(fn ($baris, $nama) => [
+                'barang' => $nama,
+                'kali'   => $baris->count(),
+                'jumlah' => $baris->sum('jumlah'),
+            ])
+            ->sortByDesc('jumlah')
+            ->take(5)
+            ->values();
+
+        $periode = $this->pilihanPeriode();
+
+        return view('manajer.surat_jalan', [
+            'surat'        => RiwayatOrderController::paginateNotas(
+                $semuaSurat->reverse()->values(),
+                self::SURAT_JALAN_PER_HALAMAN,
+                $request,
+            ),
+            'jumlahSurat'  => $totalSurat,
+            'jumlahBaris'  => $totalBaris,
+            'totalJumlah'  => $totalJumlah,
+            'rataPerSurat' => $totalSurat > 0 ? $totalJumlah / $totalSurat : 0,
+            'perBarang'    => $perBarang,
+            'perCabang'    => $semuaSurat
+                ->groupBy(fn ($s) => $s['items']->first()->cabang_area ?: Cabang::default())
+                ->map(fn ($baris, $nama) => [
+                    'cabang' => $nama,
+                    'surat'  => $baris->count(),
+                    'jumlah' => $baris->sum(fn ($s) => $s['items']->sum('jumlah')),
+                ])
+                ->sortByDesc('jumlah')
+                ->values(),
+            'cabang'       => $cabang,
+            'bulan'        => $bulan,
+            'tahun'        => $tahun,
+            'daftarTahun'  => $periode['daftarTahun'],
+            'namaBulan'    => $periode['namaBulan'],
+        ]);
+    }
+
+    /**
+     * Kelompokkan baris surat jalan menjadi surat (1 surat bisa banyak barang).
+     */
+    protected function kelompokkanSurat($baris)
+    {
+        return NotaGrouper::withTotals(
+            NotaGrouper::group(
+                $baris,
+                fn ($item) => $item->nomor_surat_bersih,
+                fn ($item) => $item->nomor_surat,
+            ),
+            fn ($item) => (float) $item->jumlah,
+        );
     }
 }
 

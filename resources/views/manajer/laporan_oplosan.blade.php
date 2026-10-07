@@ -311,11 +311,7 @@
                     @endforeach
                 </div>
             @endif
-            @if ($notas->hasPages())
-                <div class="border-t border-slate-200/60 px-3 py-4 sm:px-6">
-                    {{ $notas->links() }}
-                </div>
-            @endif
+            <x-pager :paginator="$notas" anchor="daftar-oplosan-pantau" />
         </div>
     </div>
 @endsection

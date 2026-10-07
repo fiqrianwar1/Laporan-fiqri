@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Laporan Harian Oplosan</title>
+    <title>Surat Jalan</title>
     <style>
         /* Nomor halaman di footer ditulis lewat script php, karena DomPDF
            tidak mendukung at-rule @page { @bottom-center }. */
@@ -29,11 +29,8 @@
         .banner table { width: 100%; border-collapse: collapse; }
         .banner td { vertical-align: middle; padding: 0; }
 
-        /* Kotak logo WTJ. Latarnya putih supaya logo tetap terbaca di atas
-           banner biru; gambarnya di-scale ke dalam kotak.
-           display: block wajib: sebagai span (inline), width/height tidak
-           dipakai DomPDF dan kotaknya jadi pil tinggi yang menyembul
-           keluar banner. */
+        /* Kotak logo WTJ. display: block wajib supaya width/height dipakai
+           DomPDF - sebagai span (inline) kotaknya jadi pil tinggi. */
         .logo {
             display: block;
             width: 46px;
@@ -131,16 +128,14 @@
         .summary td {
             border-radius: 8px;
             padding: 11px 14px 12px;
-            width: 25%;
+            width: 33%;
             border-top: 3px solid #cbd5e1;
         }
 
         .summary .card-blue { background: #eff6ff; border: 1px solid #bfdbfe; border-top: 3px solid #2563eb; }
         .summary .card-amber { background: #fffbeb; border: 1px solid #fde68a; border-top: 3px solid #d97706; }
-        .summary .card-violet { background: #f5f3ff; border: 1px solid #ddd6fe; border-top: 3px solid #7c3aed; }
         .summary .card-green { background: #ecfdf5; border: 1px solid #a7f3d0; border-top: 3px solid #059669; }
 
-        /* Titik kecil di atas label, warnanya mengikuti kartunya. */
         .icon-badge {
             display: inline-block;
             width: 20px;
@@ -156,7 +151,6 @@
 
         .icon-blue { background: #2563eb; }
         .icon-amber { background: #d97706; }
-        .icon-violet { background: #7c3aed; }
         .icon-green { background: #059669; }
 
         .summary .label {
@@ -202,70 +196,74 @@
 
         table.data tbody tr:nth-child(even) td { background: #f5f8ff; }
 
-        .col-no   { width: 4%;  }
-        .col-qty  { width: 8%;  }
-        .col-uang { width: 13%; }
-
         .right { text-align: right; }
         .center { text-align: center; }
         .strong { font-weight: 700; color: #0f172a; }
         .muted { color: #64748b; }
 
-        .badge-match {
-            display: inline-block;
-            padding: 1px 7px;
-            border-radius: 8px;
-            font-size: 7px;
-            font-weight: 700;
-        }
-        .match-sama  { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
-        .match-mirip { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
-        .match-beda  { background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; }
-
-        tfoot .total-row td {
-            background: #fffbeb !important;
-            border-top: 2px solid #f59e0b;
-            font-weight: 700;
-            color: #92400e;
-            font-size: 8.5px;
-        }
-
-        /* ===== Blok per hari =====
-           Satu tanggal = satu blok berisi seluruh pekerjaan hari itu.
-           Bentuknya mengikuti blok nota di laporan oplosan. */
-        .hari {
+        /* ===== Blok per surat =====
+           Satu surat = satu blok berisi seluruh barangnya. Bentuknya
+           mengikuti blok nota di laporan oplosan. */
+        .surat {
             border: 1px solid #cbd5e1;
             border-radius: 6px;
             margin-bottom: 10px;
             page-break-inside: avoid;
         }
 
-        .hari-head {
+        .surat-head {
             background: #eff6ff;
             border-bottom: 1px solid #bfdbfe;
             padding: 6px 9px;
         }
 
-        .hari-head .tanggal {
+        .surat-head .nomor {
             font-size: 9.5px;
             font-weight: 700;
             color: #1e3a8a;
         }
 
-        .hari-head .info {
+        .surat-head .info {
             font-size: 7.5px;
             color: #475569;
             margin-top: 1px;
         }
 
-        .hari-head .total {
+        .surat-head .total {
             float: right;
             font-size: 9.5px;
             font-weight: 700;
             color: #0f172a;
         }
 
-        /* Subtotal tiap hari, dicetak tepat di bawah pekerjaan hari itu. */
+        table.items {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table.items th {
+            background: #f8fafc;
+            color: #475569;
+            text-transform: uppercase;
+            font-size: 6.5px;
+            font-weight: 700;
+            letter-spacing: .25px;
+            padding: 4px 6px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        table.items td {
+            font-size: 8.4px;
+            padding: 5.5px 7px;
+            border-bottom: 1px solid #eef2f7;
+            vertical-align: middle;
+        }
+
+        table.items tbody tr:nth-child(even) td { background: #fafcff; }
+
+        table.items tr:last-child td { border-bottom: 0; }
+
+        /* Subtotal tiap surat, dicetak tepat di bawah barangnya. */
         .subtotal td {
             background: #eef2ff !important;
             border-top: 2px solid #1d4ed8;
@@ -274,6 +272,48 @@
             color: #1e293b;
             font-size: 8.5px;
             padding: 6px;
+        }
+
+        .nomor-bagian {
+            display: inline-block;
+            background: #1d4ed8;
+            color: #fff;
+            font-weight: 700;
+            font-size: 7.5px;
+            padding: 1px 6px;
+            border-radius: 8px;
+            margin-right: 5px;
+        }
+
+        /* Kotak total keseluruhan (gabungan semua surat). */
+        .grand {
+            margin-top: 14px;
+            border: 2px solid #1d4ed8;
+            border-radius: 8px;
+            background: #eff6ff;
+            padding: 10px 14px;
+        }
+
+        .grand .label {
+            display: block;
+            font-size: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: #1e40af;
+        }
+
+        .grand .angka {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-top: 2px;
+        }
+
+        .grand .rinci {
+            font-size: 7.5px;
+            color: #475569;
+            margin-top: 2px;
         }
 
         .sign {
@@ -318,38 +358,38 @@
             color: #94a3b8;
         }
 
-        /* Baris tanda tangan tidak boleh kepotong ke halaman berikutnya. */
+        /* Baris tanda tangan & total tidak boleh kepotong ke halaman berikutnya. */
         .sign, .grand { page-break-inside: avoid; }
 
-        /* Kotak total keseluruhan (gabungan semua tanggal). */
-        .grand {
-            margin-top: 14px;
-            border: 2px solid #1d4ed8;
-            border-radius: 8px;
-            background: #eff6ff;
-            padding: 10px 14px;
+        /* ===== Pemisah cabang =====
+           Surat tiap cabang dikelompokkan di bawah judulnya sendiri supaya
+           Banjarmasin & Palangka tidak tercampur dalam satu deretan. */
+        .bagian {
+            margin: 14px 0 9px;
+            border-left: 4px solid #1d4ed8;
+            background: #f1f5f9;
+            padding: 7px 12px;
+            page-break-after: avoid;
         }
 
-        .grand .label {
-            display: block;
-            font-size: 8px;
+        .bagian .nama {
+            font-size: 11.5px;
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .5px;
-            color: #1e40af;
+            color: #1e3a8a;
+            letter-spacing: 0;
         }
 
-        .grand .angka {
-            font-size: 15px;
+        .bagian .ket {
+            font-size: 7.5px;
+            color: #64748b;
+            margin-top: 1px;
+        }
+
+        .bagian .nilai {
+            float: right;
+            font-size: 10px;
             font-weight: 700;
             color: #0f172a;
-            margin-top: 2px;
-        }
-
-        .grand .rinci {
-            font-size: 7.5px;
-            color: #475569;
-            margin-top: 2px;
         }
     </style>
 </head>
@@ -369,8 +409,8 @@
                 </td>
                 <td>
                     <p class="brand">PT. Warna Tanjung Jaya</p>
-                    <p class="title">Laporan Harian Oplosan</p>
-                    <p class="subtitle">Unit Body &amp; Paint &mdash; Tinter: Fiqri</p>
+                    <p class="title">Surat Jalan</p>
+                    <p class="subtitle">Barang Keluar Gudang &mdash; Unit Body &amp; Paint</p>
                 </td>
                 <td class="periode" style="width: 130px;">
                     Periode Laporan
@@ -393,7 +433,7 @@
                 @php
                     $kodeDokumen = $cabang ? \App\Support\Cabang::singkatan($cabang) : 'ALL';
                 @endphp
-                <span class="badge">No. Dokumen: LHO-{{ $kodeDokumen }}-{{ $tahun }}{{ $namaBulan ? '-' . strtoupper(substr($namaBulan, 0, 3)) : '' }}</span>
+                <span class="badge">No. Dokumen: SJ-{{ $kodeDokumen }}-{{ $tahun }}{{ $namaBulan ? '-' . strtoupper(substr($namaBulan, 0, 3)) : '' }}</span>
                 <span class="badge kosong">{{ $cabang ?: 'Seluruh Cabang' }}</span>
             </td>
             <td class="right">Dicetak: {{ now()->translatedFormat('d F Y, H:i') }} WIB</td>
@@ -404,108 +444,106 @@
         <tr>
             <td class="card-blue">
                 <span class="icon-badge icon-blue">&#8801;</span>
-                <span class="label">Total Pekerjaan</span>
-                <span class="value">{{ number_format($totalBaris) }} baris</span>
+                <span class="label">Total Surat</span>
+                <span class="value">{{ number_format($surat->count()) }} surat</span>
             </td>
             <td class="card-amber">
                 <span class="icon-badge icon-amber">&#931;</span>
-                <span class="label">Total Volume</span>
-                <span class="value">{{ number_format($totalVolume) }} CC</span>
-            </td>
-            <td class="card-violet">
-                <span class="icon-badge icon-violet">&#9201;</span>
-                <span class="label">Total Durasi</span>
-                <span class="value">{{ $totalDurasi > 0 ? number_format($totalDurasi) . ' mnt' : '—' }}</span>
+                <span class="label">Total Barang</span>
+                <span class="value">{{ number_format($totalBaris) }} barang</span>
             </td>
             <td class="card-green">
                 <span class="icon-badge icon-green">&#10003;</span>
-                <span class="label">Matching Sama</span>
-                <span class="value">
-                    {{ number_format($jumlahSama) }} / {{ number_format($totalBaris) }}
-                    ({{ $totalBaris > 0 ? round($jumlahSama / $totalBaris * 100) : 0 }}%)
-                </span>
+                <span class="label">Total Jumlah Dikirim</span>
+                <span class="value">{{ number_format($totalJumlah) }}</span>
             </td>
         </tr>
     </table>
 
-    @forelse ($hari as $blok)
-        @php
-            $namaHari = \App\Support\Tanggal::panjang($blok['tanggal']);
-            $cabangHari = $blok['items']->pluck('cabang_area')->filter()->unique()->values();
-            $platHari = $blok['items']->pluck('plat_nomor')->filter()->unique()->values();
-        @endphp
-        <div class="hari">
-            <div class="hari-head">
-                <span class="total">{{ number_format($blok['volume']) }} cc</span>
-                <span class="tanggal">{{ $namaHari }}</span>
-                <div class="info">
-                    {{ $blok['jumlahItem'] }} pekerjaan
-                    @if ($blok['durasi'] > 0)
-                        &middot; {{ number_format($blok['durasi']) }} mnt
-                    @endif
-                    &middot; {{ $blok['sama'] }}/{{ $blok['jumlahItem'] }} matching sama
-                    @if ($platHari->isNotEmpty())
-                        &middot; {{ $platHari->take(3)->implode(' \u00b7 ') }}{{ $platHari->count() > 3 ? ' +' . ($platHari->count() - 3) . ' lainnya' : '' }}
-                    @endif
-                    @if ($cabangHari->isNotEmpty())
-                        &middot; {{ $cabangHari->implode(', ') }}
-                    @endif
-                </div>
-            </div>
+    @php
+        // Surat dipisah per cabang supaya Banjarmasin & Palangka tidak
+        // tercampur, tapi totalnya tetap dijumlah bersama di akhir.
+        $bagian = \App\Support\Cabang::kelompokkanNota($surat);
+    @endphp
 
-            <table class="items">
-                <thead>
-                    <tr>
-                        <th class="center" style="width: 5%;">No</th>
-                        <th style="width: 11%;">Plat Nomor</th>
-                        <th style="width: 13%;">Kode Warna</th>
-                        <th style="width: 13%;">Tipe Mobil</th>
-                        <th style="width: 12%;">Bahan Cat</th>
-                        <th class="right" style="width: 9%;">Volume</th>
-                        <th class="center" style="width: 7%;">Dibuat</th>
-                        <th class="center" style="width: 7%;">Selesai</th>
-                        <th class="right" style="width: 7%;">Durasi</th>
-                        <th class="center" style="width: 9%;">Matching</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($blok['items'] as $item)
-                        @php
-                            $kelasMatch = ['Sama' => 'match-sama', 'Mirip' => 'match-mirip', 'Beda' => 'match-beda'][$item->hasil_matching] ?? '';
-                        @endphp
-                        <tr>
-                            <td class="center muted">{{ $loop->iteration }}</td>
-                            <td class="strong">{{ $item->plat_nomor }}</td>
-                            <td>{{ $item->kode_warna }}</td>
-                            <td>{{ $item->tipe_mobil }}</td>
-                            <td>{{ $item->bahan_cat }}</td>
-                            <td class="right strong">{{ number_format($item->volume_cc) }} cc</td>
-                            <td class="center">{{ $item->jam_dibuat ? \Illuminate\Support\Str::of($item->jam_dibuat)->substr(0, 5) : '\u2014' }}</td>
-                            <td class="center">{{ $item->jam_selesai ? \Illuminate\Support\Str::of($item->jam_selesai)->substr(0, 5) : '\u2014' }}</td>
-                            <td class="right muted">{{ $item->durasi_menit !== null ? $item->durasi_menit . ' mnt' : '\u2014' }}</td>
-                            <td class="center"><span class="badge-match {{ $kelasMatch }}">{{ $item->hasil_matching }}</span></td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+    @forelse ($bagian as $grup)
+        <div class="bagian">
+            <span class="nilai">{{ number_format($grup['notas']->sum(fn ($s) => $s['items']->sum('jumlah'))) }}</span>
+            <span class="nama">Bagian {{ $loop->iteration }} &mdash; {{ $grup['cabang'] }}</span>
+            <div class="ket">
+                {{ $grup['notas']->count() }} surat &middot;
+                {{ number_format($grup['notas']->sum(fn ($s) => $s['jumlahItem'])) }} barang &middot;
+                {{ number_format($grup['notas']->sum(fn ($s) => $s['items']->sum('jumlah'))) }} total jumlah
+                &middot; Kode: {{ $grup['kode'] }}
+            </div>
         </div>
 
-        {{-- Subtotal tanggal ini, langsung di bawah pekerjaan harinya. --}}
-        <table class="data">
-            <tfoot>
-                <tr class="subtotal">
-                    <td class="right" colspan="5">
-                        SUBTOTAL {{ strtoupper($namaHari) }} &middot;
-                        {{ $blok['jumlahItem'] }} PEKERJAAN &middot;
-                        {{ $blok['sama'] }} MATCHING SAMA
-                    </td>
-                    <td class="right">{{ number_format($blok['volume']) }} cc</td>
-                    <td colspan="2" class="center">&nbsp;</td>
-                    <td class="right">{{ $blok['durasi'] > 0 ? number_format($blok['durasi']) . ' mnt' : '\u2014' }}</td>
-                    <td class="center">&nbsp;</td>
-                </tr>
-            </tfoot>
-        </table>
+        @foreach ($grup['notas'] as $satu)
+            @php
+                $totalJumlahSurat = $satu['items']->sum('jumlah');
+            @endphp
+            <div class="surat">
+                <div class="surat-head">
+                    <span class="total">{{ number_format($totalJumlahSurat) }}</span>
+                    <span class="nomor">
+                        <span class="nomor-bagian">Surat #{{ $satu['nomorBagian'] }}</span>
+                        {{ \App\Support\Tanggal::panjang($satu['tanggal']) }}
+                    </span>
+                    <div class="info">
+                        {{ $satu['nomor'] ?? 'Tanpa nomor' }} &middot;
+                        {{ $satu['items']->count() }} barang &middot;
+                        {{ number_format($totalJumlahSurat) }} total jumlah
+                        @if ($satu['items']->first()->cabang_area)
+                            &middot; {{ $satu['items']->first()->cabang_area }}
+                        @endif
+                    </div>
+                </div>
+
+                <table class="items">
+                    <thead>
+                        <tr>
+                            <th class="center col-no">No</th>
+                            <th style="width: 13%;">Kode Barang</th>
+                            <th style="width: 28%;">Nama Barang / Cat</th>
+                            <th style="width: 17%;">Kemasan Barang</th>
+                            <th class="right col-qty">Jumlah</th>
+                            <th style="width: 17%;">Asal Penyimpanan</th>
+                            <th style="width: 14%;">Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($satu['items'] as $item)
+                            <tr>
+                                <td class="center item-no">{{ $item->nomor_urut ?? $loop->iteration }}</td>
+                                <td class="muted">{{ $item->kode_barang ?: '—' }}</td>
+                                <td class="strong">{{ $item->nama_barang }}</td>
+                                <td>{{ $item->kemasan_barang ?: '—' }}</td>
+                                <td class="right strong">{{ number_format($item->jumlah) }}</td>
+                                <td>{{ $item->asal_penyimpanan ?: '—' }}</td>
+                                <td class="muted">{{ $item->keterangan ?: '—' }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- Subtotal cabang ini, langsung di bawah surat terakhirnya. --}}
+            @if ($loop->last)
+                <table class="data">
+                    <tfoot>
+                        <tr class="subtotal">
+                            <td class="right" colspan="4">
+                                SUBTOTAL {{ strtoupper($grup['cabang']) }} &middot;
+                                {{ $grup['notas']->count() }} SURAT &middot;
+                                {{ number_format($grup['notas']->sum(fn ($s) => $s['jumlahItem'])) }} BARANG
+                            </td>
+                            <td class="right">{{ number_format($grup['notas']->sum(fn ($s) => $s['items']->sum('jumlah'))) }}</td>
+                            <td colspan="2">&nbsp;</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            @endif
+        @endforeach
     @empty
         <table class="data">
             <tbody>
@@ -516,16 +554,15 @@
         </table>
     @endforelse
 
-    {{-- Total gabungan seluruh tanggal. --}}
-    @if ($baris->isNotEmpty())
+    {{-- Total gabungan seluruh cabang. --}}
+    @if ($surat->isNotEmpty())
         <div class="grand">
-            <span class="label">Total Keseluruhan</span>
-            <span class="angka">{{ number_format($totalVolume) }} CC</span>
+            <span class="label">Total Keseluruhan (Semua Cabang)</span>
+            <span class="angka">{{ number_format($totalJumlah) }}</span>
             <div class="rinci">
-                {{ $hari->count() }} hari &middot;
-                {{ number_format($totalBaris) }} pekerjaan &middot;
-                {{ $totalDurasi > 0 ? number_format($totalDurasi) . ' mnt' : 'durasi belum diisi' }} &middot;
-                {{ number_format($jumlahSama) }} matching sama
+                {{ $bagian->count() }} cabang &middot;
+                {{ number_format($surat->count()) }} surat &middot;
+                {{ number_format($totalBaris) }} barang
                 @if ($namaBulan)
                     &middot; Periode {{ $namaBulan }} {{ $tahun }}
                 @else
@@ -538,12 +575,12 @@
     <table class="sign">
         <tr>
             <td>
-                Dibuat oleh,
+                Diserahkan oleh,
                 <div class="sign-space"></div>
-                <span class="sign-name">Fiqri (Tinter)</span>
+                <span class="sign-name">(_________________________)</span>
             </td>
             <td>
-                Diketahui oleh,
+                Diterima oleh,
                 <div class="sign-space"></div>
                 <span class="sign-name">(_________________________)</span>
             </td>
@@ -553,12 +590,9 @@
     @php
         // Nomor halaman ditulis di sini, bukan di dalam <div class="footer">,
         // karena DomPDF baru tahu jumlah halaman setelah dokumen selesai
-        // dirender. Teks footer-nya sendiri tetap ada di bawah sebagai teks
-        // biasa, jadi tidak ada placeholder yang tercetak mentah.
-        //
-        // Font diambil lewat $fontMetrics, bukan null: kalau null, DomPDF
-        // justru ikut menulis ulang placeholder "HAL. {PAGE_NUM} ..." apa
-        // adanya dan halaman terakhir jadi kosong.
+        // dirender. Font diambil lewat $fontMetrics, bukan null: kalau null,
+        // DomPDF justru ikut menulis ulang placeholder "HAL. {PAGE_NUM} ..."
+        // apa adanya dan halaman terakhir jadi kosong.
         $scriptHalaman = <<<'HTML'
 <script type="text/php">
     if (isset($pdf)) {
@@ -569,7 +603,7 @@
 HTML;
     @endphp
 
-    <div class="footer">Dokumen dibuat otomatis oleh sistem Laporan Harian Oplosan &mdash; PT. Warna Tanjung Jaya</div>
+    <div class="footer">Dokumen dibuat otomatis oleh sistem Surat Jalan &mdash; PT. Warna Tanjung Jaya</div>
 
     {!! $scriptHalaman !!}
 </body>

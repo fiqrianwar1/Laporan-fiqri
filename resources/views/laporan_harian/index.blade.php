@@ -260,12 +260,12 @@
             <div class="card-head flex">
                 <div>
                     <h2 class="card-title">Catatan Harian</h2>
-                    <p class="card-sub">Satu baris = satu pekerjaan oplosan cat untuk satu unit.</p>
+                    <p class="card-sub">Satu tanggal = satu blok berisi semua pekerjaan oplosan cat hari itu.</p>
                 </div>
                 <span class="pill pill-slate">
-                    {{ number_format($barisHalaman->total()) }} Baris
-                    @if ($barisHalaman->total() > $barisHalaman->perPage())
-                        &middot; hal. {{ $barisHalaman->currentPage() }}/{{ $barisHalaman->lastPage() }}
+                    {{ number_format($hariHalaman->total()) }} Hari
+                    @if ($hariHalaman->lastPage() > 1)
+                        &middot; hal. {{ $hariHalaman->currentPage() }}/{{ $hariHalaman->lastPage() }}
                     @endif
                 </span>
             </div>
@@ -289,12 +289,15 @@
                     </div>
                 </div>
             @else
+                {{-- Satu tanggal = satu kartu berisi seluruh pekerjaan hari itu.
+                     Rinciannya dibuka-tutup lewat tombol, dan tiap pekerjaan
+                     tetap bisa diubah / dihapus dari dalam kartu. --}}
                 <div class="divide-y divide-slate-100">
-                    @foreach ($barisHalaman as $baris)
-                        @include('laporan_harian._baris', ['baris' => $baris])
+                    @foreach ($hariHalaman as $hari)
+                        @include('laporan_harian._hari', ['hari' => $hari])
                     @endforeach
                 </div>
-                <x-pager :paginator="$barisHalaman" anchor="daftar-harian" />
+                <x-pager :paginator="$hariHalaman" anchor="daftar-harian" />
             @endif
         </div>
     </div>

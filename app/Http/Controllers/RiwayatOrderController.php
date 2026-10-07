@@ -76,7 +76,7 @@ class RiwayatOrderController extends Controller
         // Pecahan per cabang, supaya kelihatan kontribusi tiap cabang.
         $perCabang = $this->ringkasanPerCabang($semuaNota);
 
-        $notas = $this->paginateNotas($semuaNota, 10, $request);
+        $notas = $this->paginateNotas($semuaNota, self::NOTA_PER_HALAMAN, $request);
 
         return view('riwayat_order.index', compact(
             'notas', 'totalBelanja', 'totalItem', 'bulan', 'tahun', 'cabang',
@@ -102,6 +102,14 @@ class RiwayatOrderController extends Controller
             ->sortByDesc('nilai')
             ->values();
     }
+
+    /**
+     * Jumlah nota per halaman di daftar (riwayat order, laporan oplosan,
+     * dan halaman pantau manajer). Dipusatkan di sini supaya semua daftar
+     * punya panjang halaman yang sama - tidak ada halaman yang keburu
+     * memanjang hanya karena angkanya berbeda-beda.
+     */
+    public const NOTA_PER_HALAMAN = 10;
 
     /**
      * Paginasi manual untuk kumpulan nota (Collection).

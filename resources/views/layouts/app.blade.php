@@ -49,6 +49,13 @@
             'aktif' => request()->routeIs('riwayat-order.*'),
             'icon'  => 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
         ],
+        [
+            'label' => 'Surat Jalan',
+            'desc'  => 'Barang keluar gudang',
+            'route' => 'surat-jalan.index',
+            'aktif' => request()->routeIs('surat-jalan.*'),
+            'icon'  => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+        ],
     ];
 
     // Ditampilkan maks 2 kolom biar tidak berdesakan saat sidebar disembunyikan.
@@ -58,9 +65,11 @@
         ['short' => 'Catat Harian',    'label' => 'Catat Laporan Harian',  'route' => 'laporan-harian.create',  'accent' => 'emerald', 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'],
         ['short' => 'Catat Oplosan',   'label' => 'Catat Laporan Oplosan', 'route' => 'laporan-oplosan.create', 'accent' => 'blue',    'icon' => 'M9 3v2m6-2v2M4 8h16M6 6h12a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2z'],
         ['short' => 'Catat Order',     'label' => 'Catat Pembelian Bahan', 'route' => 'riwayat-order.create',   'accent' => 'indigo',  'icon' => 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4'],
+        ['short' => 'Catat Surat',     'label' => 'Catat Surat Jalan',     'route' => 'surat-jalan.create',     'accent' => 'rose',    'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
         ['short' => 'PDF Harian',      'label' => 'Preview PDF Harian',    'route' => 'laporan-harian.preview', 'accent' => 'amber',   'icon' => 'M9 12h6m-6 4h6M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z'],
         ['short' => 'PDF Oplosan',     'label' => 'Preview PDF Oplosan',   'route' => 'laporan-oplosan.preview', 'accent' => 'sky',    'icon' => 'M9 12h6m-6 4h6M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z'],
         ['short' => 'PDF Order',       'label' => 'Preview PDF Order',     'route' => 'riwayat-order.preview',   'accent' => 'violet',  'icon' => 'M9 12h6m-6 4h6M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z'],
+        ['short' => 'PDF Surat',       'label' => 'Preview PDF Surat Jalan', 'route' => 'surat-jalan.preview',   'accent' => 'rose',    'icon' => 'M9 12h6m-6 4h6M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z'],
     ];
 @endphp
 <body class="app-bg text-slate-800">
@@ -444,12 +453,22 @@
                                     </a>
                                 @endif
                                 @if ($bolehIsi)
-                                    <a href="{{ request()->routeIs('riwayat-order*') ? route('riwayat-order.create') : route('laporan-oplosan.create') }}"
+                                    @php
+                                        // Tombol pintas ini menyesuaikan halaman yang
+                                        // sedang dibuka, jadi pengguna langsung diarahkan
+                                        // ke form tambah yang relevan.
+                                        $tambahCepat = match (true) {
+                                            request()->routeIs('riwayat-order*') => ['label' => 'Tambah Order', 'route' => 'riwayat-order.create'],
+                                            request()->routeIs('surat-jalan*')    => ['label' => 'Tambah Surat', 'route' => 'surat-jalan.create'],
+                                            default                              => ['label' => 'Tambah Laporan', 'route' => 'laporan-oplosan.create'],
+                                        };
+                                    @endphp
+                                    <a href="{{ route($tambahCepat['route']) }}"
                                        class="btn btn-primary btn-sm">
                                         <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                                         </svg>
-                                        {{ request()->routeIs('riwayat-order*') ? 'Tambah Order' : 'Tambah Laporan' }}
+                                        {{ $tambahCepat['label'] }}
                                     </a>
                                 @endif
                                 <button type="button" data-palette-open class="chip" title="Cari menu (Ctrl + K)">
@@ -482,7 +501,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $item['icon'] }}"/>
                         </svg>
                     </span>
-                    {{ ['Dashboard' => 'Beranda', 'Laporan Harian' => 'Harian', 'Laporan Oplosan' => 'Oplosan', 'Riwayat Order' => 'Order'][$item['label']] ?? $item['label'] }}
+                    {{ ['Dashboard' => 'Beranda', 'Laporan Harian' => 'Harian', 'Laporan Oplosan' => 'Oplosan', 'Riwayat Order' => 'Order', 'Surat Jalan' => 'Surat'][$item['label']] ?? $item['label'] }}
                 </a>
             @endforeach
             <button type="button" data-sheet-open
@@ -570,12 +589,15 @@
                                 { label: 'Laporan Harian', sub: 'Catatan oplosan per unit', url: @json(route('laporan-harian.index')) },
                                 { label: 'Laporan Oplosan', sub: 'Lihat rekap tinting per nota', url: @json(route('laporan-oplosan.index')) },
                                 { label: 'Riwayat Order', sub: 'Lihat belanja bahan & consumable', url: @json(route('riwayat-order.index')) },
+                                { label: 'Surat Jalan', sub: 'Lihat barang keluar gudang', url: @json(route('surat-jalan.index')) },
                                 { label: 'Preview PDF Laporan Harian', sub: 'Cek dokumen sebelum cetak', url: @json(route('laporan-harian.preview')) },
                                 { label: 'Preview PDF Laporan Oplosan', sub: 'Cek dokumen sebelum cetak', url: @json(route('laporan-oplosan.preview')) },
                                 { label: 'Preview PDF Riwayat Order', sub: 'Cek dokumen sebelum cetak', url: @json(route('riwayat-order.preview')) },
+                                { label: 'Preview PDF Surat Jalan', sub: 'Cek dokumen sebelum cetak', url: @json(route('surat-jalan.preview')) },
                                 { label: 'Download PDF Laporan Harian', sub: 'Unduh berkas langsung', url: @json(route('laporan-harian.pdf')) },
                                 { label: 'Download PDF Laporan Oplosan', sub: 'Unduh berkas langsung', url: @json(route('laporan-oplosan.pdf')) },
                                 { label: 'Download PDF Riwayat Order', sub: 'Unduh berkas langsung', url: @json(route('riwayat-order.pdf')) },
+                                { label: 'Download PDF Surat Jalan', sub: 'Unduh berkas langsung', url: @json(route('surat-jalan.pdf')) },
                                 { label: 'Keluar', sub: 'Logout dari sistem', url: @json(route('logout')), post: true },
                             ];
 
@@ -583,7 +605,8 @@
                                 daftarMenu.unshift(
                                     { label: 'Tambah Laporan Harian', sub: 'Catat pekerjaan oplosan baru', url: @json(route('laporan-harian.create')) },
                                     { label: 'Tambah Laporan Oplosan', sub: 'Catat oplosan baru', url: @json(route('laporan-oplosan.create')) },
-                                    { label: 'Tambah Riwayat Order', sub: 'Catat pembelian baru', url: @json(route('riwayat-order.create')) }
+                                    { label: 'Tambah Riwayat Order', sub: 'Catat pembelian baru', url: @json(route('riwayat-order.create')) },
+                                    { label: 'Tambah Surat Jalan', sub: 'Catat barang keluar baru', url: @json(route('surat-jalan.create')) }
                                 );
                             }
 

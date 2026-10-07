@@ -6,6 +6,7 @@ use App\Http\Controllers\LaporanHarianOplosanController;
 use App\Http\Controllers\LaporanOplosanController;
 use App\Http\Controllers\ManajerController;
 use App\Http\Controllers\RiwayatOrderController;
+use App\Http\Controllers\SuratJalanController;
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
@@ -32,6 +33,9 @@ Route::get('/riwayat-order/preview/pdf', [RiwayatOrderController::class, 'previe
 Route::get('/laporan-harian/preview/pdf', [LaporanHarianOplosanController::class, 'previewPdf'])
     ->name('laporan-harian.preview');
 
+Route::get('/surat-jalan/preview/pdf', [SuratJalanController::class, 'previewPdf'])
+    ->name('surat-jalan.preview');
+
 // Stream PDF mentah (dipakai sebagai src iframe di halaman preview).
 Route::get('/laporan-oplosan/preview/pdf/raw', [LaporanOplosanController::class, 'streamPdf'])
     ->name('laporan-oplosan.pdf.stream');
@@ -42,6 +46,9 @@ Route::get('/riwayat-order/preview/pdf/raw', [RiwayatOrderController::class, 'st
 Route::get('/laporan-harian/preview/pdf/raw', [LaporanHarianOplosanController::class, 'streamPdf'])
     ->name('laporan-harian.pdf.stream');
 
+Route::get('/surat-jalan/preview/pdf/raw', [SuratJalanController::class, 'streamPdf'])
+    ->name('surat-jalan.pdf.stream');
+
 // Download langsung (tanpa preview).
 Route::get('/laporan-oplosan/export/pdf', [LaporanOplosanController::class, 'exportPdf'])
     ->name('laporan-oplosan.pdf');
@@ -51,6 +58,9 @@ Route::get('/riwayat-order/export/pdf', [RiwayatOrderController::class, 'exportP
 
 Route::get('/laporan-harian/export/pdf', [LaporanHarianOplosanController::class, 'exportPdf'])
     ->name('laporan-harian.pdf');
+
+Route::get('/surat-jalan/export/pdf', [SuratJalanController::class, 'exportPdf'])
+    ->name('surat-jalan.pdf');
 
 // ===== Halaman yang butuh login =====
 // Semua user yang sudah login boleh melihat (index) & export.
@@ -69,6 +79,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/riwayat-order', [ManajerController::class, 'riwayatOrder'])->name('riwayat-order');
         Route::get('/laporan-oplosan', [ManajerController::class, 'laporanOplosan'])->name('laporan-oplosan');
         Route::get('/laporan-harian', [ManajerController::class, 'laporanHarian'])->name('laporan-harian');
+        Route::get('/surat-jalan', [ManajerController::class, 'suratJalan'])->name('surat-jalan');
     });
 
     // Route export PDF (harus di atas resource biar nggak ketiban route lain)
@@ -81,6 +92,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/laporan-harian/preview/pdf', [LaporanHarianOplosanController::class, 'previewPdf'])
         ->name('laporan-harian.preview');
 
+    Route::get('/surat-jalan/preview/pdf', [SuratJalanController::class, 'previewPdf'])
+        ->name('surat-jalan.preview');
+
     Route::get('/laporan-oplosan/preview/pdf/raw', [LaporanOplosanController::class, 'streamPdf'])
         ->name('laporan-oplosan.pdf.stream');
 
@@ -90,6 +104,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/laporan-harian/preview/pdf/raw', [LaporanHarianOplosanController::class, 'streamPdf'])
         ->name('laporan-harian.pdf.stream');
 
+    Route::get('/surat-jalan/preview/pdf/raw', [SuratJalanController::class, 'streamPdf'])
+        ->name('surat-jalan.pdf.stream');
+
     Route::get('/laporan-oplosan/export/pdf', [LaporanOplosanController::class, 'exportPdf'])
         ->name('laporan-oplosan.pdf');
 
@@ -98,6 +115,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/laporan-harian/export/pdf', [LaporanHarianOplosanController::class, 'exportPdf'])
         ->name('laporan-harian.pdf');
+
+    Route::get('/surat-jalan/export/pdf', [SuratJalanController::class, 'exportPdf'])
+        ->name('surat-jalan.pdf');
 
     // Lihat data: semua yang sudah login (tinter & manajer)
     Route::resource('laporan-oplosan', LaporanOplosanController::class)
@@ -109,6 +129,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('laporan-harian', LaporanHarianOplosanController::class)
         ->only(['index']);
 
+    Route::resource('surat-jalan', SuratJalanController::class)
+        ->only(['index']);
+
     // Isi/Ubah/Hapus data: HANYA tinter (pengisi laporan)
     Route::middleware('role:tinter')->group(function () {
         Route::resource('laporan-oplosan', LaporanOplosanController::class)
@@ -118,6 +141,9 @@ Route::middleware('auth')->group(function () {
             ->only(['create', 'store', 'edit', 'update', 'destroy']);
 
         Route::resource('laporan-harian', LaporanHarianOplosanController::class)
+            ->only(['create', 'store', 'edit', 'update', 'destroy']);
+
+        Route::resource('surat-jalan', SuratJalanController::class)
             ->only(['create', 'store', 'edit', 'update', 'destroy']);
     });
 });

@@ -76,7 +76,7 @@ class LaporanOplosanController extends Controller
         // Pecahan per cabang, supaya kelihatan kontribusi tiap cabang.
         $perCabang = $this->ringkasanPerCabang($semuaNota);
 
-        $notas = RiwayatOrderController::paginateNotas($semuaNota, 10, $request);
+        $notas = RiwayatOrderController::paginateNotas($semuaNota, RiwayatOrderController::NOTA_PER_HALAMAN, $request);
 
         return view('laporan_oplosan.index', compact(
             'notas', 'totalOplosan', 'totalCc', 'totalBiaya', 'bulan', 'tahun', 'cabang',
