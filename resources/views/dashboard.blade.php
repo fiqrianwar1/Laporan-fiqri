@@ -126,6 +126,68 @@
             @endforeach
         </div>
 
+        {{-- ================= KARTU STATISTIK LAPORAN HARIAN & SURAT JALAN ================= --}}
+        {{-- Dua kartu ini melengkapi kartu utama: laporan harian menunjukkan
+             mutu kerja oplosan (persentase matching warna), surat jalan
+             menunjukkan berapa barang yang keluar gudang. --}}
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            @php
+                $kartuTambahan = [
+                    [
+                        'label' => 'Total Laporan Harian',
+                        'nilai' => number_format($totalHarian),
+                        'sub'   => number_format($totalVolumeHarian) . ' cc total volume',
+                        'warna' => 'from-emerald-500 to-teal-600',
+                        'glow'  => 'bg-emerald-500/10 group-hover:bg-emerald-500/20',
+                        'icon'  => 'M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+                    ],
+                    [
+                        'label' => 'Matching Warna Sama',
+                        'nilai' => $persenMatchingSama . '%',
+                        'sub'   => number_format($jumlahMatchingSama) . ' dari ' . number_format($totalHarian) . ' pekerjaan'
+                            . ($rataDurasiHarian > 0 ? ' · rata-rata ' . $rataDurasiHarian . ' menit' : ''),
+                        'warna' => 'from-violet-500 to-fuchsia-600',
+                        'glow'  => 'bg-violet-500/10 group-hover:bg-violet-500/20',
+                        'icon'  => 'M5 13l4 4L19 7',
+                    ],
+                    [
+                        'label' => 'Total Surat Jalan',
+                        'nilai' => number_format($totalSurat),
+                        'sub'   => number_format($totalBarisSurat) . ' baris barang keluar',
+                        'warna' => 'from-rose-500 to-orange-500',
+                        'glow'  => 'bg-rose-500/10 group-hover:bg-rose-500/20',
+                        'icon'  => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+                    ],
+                    [
+                        'label' => 'Total Barang Keluar',
+                        'nilai' => number_format($totalBarangKeluar),
+                        'sub'   => 'Rata-rata ' . number_format($rataPerSurat, 1) . ' barang / surat',
+                        'warna' => 'from-sky-500 to-blue-600',
+                        'glow'  => 'bg-sky-500/10 group-hover:bg-sky-500/20',
+                        'icon'  => 'M5 17a2 2 0 104 0 2 2 0 00-4 0Zm10 0a2 2 0 104 0 2 2 0 00-4 0ZM3 6h2l2.4 10.2A2 2 0 009.35 17.6h8.3a2 2 0 001.95-1.6L21 9H6',
+                    ],
+                ];
+            @endphp
+
+            @foreach ($kartuTambahan as $kartu)
+                <div class="stat-card">
+                    <div class="absolute -right-4 -top-4 h-24 w-24 rounded-full {{ $kartu['glow'] }} blur-2xl transition-all"></div>
+                    <div class="relative z-10 flex items-start gap-3.5">
+                        <div class="stat-icon bg-gradient-to-br {{ $kartu['warna'] }}">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $kartu['icon'] }}"/>
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="stat-label">{{ $kartu['label'] }}</p>
+                            <p class="angka-kartu mt-1">{{ $kartu['nilai'] }}</p>
+                            <p class="mt-0.5 text-xs text-slate-500">{{ $kartu['sub'] }}</p>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
         {{-- ================= FILTER PERIODE ================= --}}
         @php
             $chipFilter = function (array $query) use ($bulan, $tahun, $cabang) {
@@ -226,10 +288,10 @@
                         @if ($bulan || $tahun || $cabang)
                             <a href="{{ route('dashboard') }}" class="btn btn-ghost h-[42px] shrink-0 px-3">Reset</a>
                         @endif
-                                </div>
-                            </form>
-                        </div>
                     </div>
+                </form>
+            </div>
+        </div>
 
                     {{-- ================= TREN + BULAN INI ================= --}}
         <div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
@@ -244,36 +306,55 @@
                         </div>
                         <div>
                             <h2 class="card-title">Tren 6 Bulan</h2>
-                            <p class="card-sub">Jumlah laporan oplosan vs item order per bulan.</p>
+                            <p class="card-sub">Laporan oplosan, item order, jumlah hari laporan harian &amp; surat jalan per bulan.</p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-3 text-[11px] font-semibold text-slate-500">                        <span class="inline-flex items-center gap-1.5">
+                    <div class="flex flex-wrap items-center gap-3 text-[11px] font-semibold text-slate-500">
+                        <span class="inline-flex items-center gap-1.5">
                             <span class="h-2.5 w-2.5 rounded-full bg-blue-500"></span> Oplosan
                         </span>
                         <span class="inline-flex items-center gap-1.5">
                             <span class="h-2.5 w-2.5 rounded-full bg-indigo-400"></span> Order
                         </span>
+                        <span class="inline-flex items-center gap-1.5">
+                            <span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span> Harian
+                        </span>
+                        <span class="inline-flex items-center gap-1.5">
+                            <span class="h-2.5 w-2.5 rounded-full bg-rose-400"></span> Surat
+                        </span>
                     </div>
                 </div>
 
                 <div class="p-4 sm:p-5">
-                    <div class="flex h-52 items-end justify-between gap-2 sm:gap-4">
+                    <div class="flex h-52 items-end justify-between gap-1.5 sm:gap-3">
                         @foreach ($tren as $baris)
                             @php
                                 $tinggiOplosan = round(($baris['oplosan'] / $maksTren) * 100);
                                 $tinggiOrder = round(($baris['order'] / $maksTren) * 100);
+                                $tinggiHarian = round(($baris['harian'] / $maksTren) * 100);
+                                $tinggiSurat = round(($baris['surat'] / $maksTren) * 100);
                             @endphp
                             <div class="group flex h-full flex-1 flex-col items-center justify-end gap-2">
-                                <div class="flex h-full w-full items-end justify-center gap-1 sm:gap-1.5">
-                                    <div class="relative flex h-full w-1/2 max-w-[26px] items-end">
+                                <div class="flex h-full w-full items-end justify-center gap-0.5 sm:gap-1">
+                                    <div class="relative flex h-full w-1/4 max-w-[18px] items-end">
                                         <div class="w-full rounded-t-lg bg-gradient-to-t from-blue-600 to-blue-400 transition-all duration-500 group-hover:from-blue-700"
                                              style="height: {{ max($tinggiOplosan, 2) }}%"
                                              title="{{ $baris['label'] }} · {{ $baris['oplosan'] }} laporan oplosan ({{ number_format($baris['cc']) }} CC)"></div>
                                     </div>
-                                    <div class="relative flex h-full w-1/2 max-w-[26px] items-end">
+                                    <div class="relative flex h-full w-1/4 max-w-[18px] items-end">
                                         <div class="w-full rounded-t-lg bg-gradient-to-t from-indigo-500 to-indigo-300 transition-all duration-500"
                                              style="height: {{ max($tinggiOrder, 2) }}%"
                                              title="{{ $baris['label'] }} · {{ $baris['order'] }} item order ({{ Rupiah::format($baris['belanja']) }})"></div>
+                                    </div>
+                                    <div class="relative flex h-full w-1/4 max-w-[18px] items-end">
+                                        <div class="w-full rounded-t-lg bg-gradient-to-t from-emerald-600 to-emerald-400 transition-all duration-500"
+                                             style="height: {{ max($tinggiHarian, 2) }}%"
+                                             title="{{ $baris['label'] }} · {{ $baris['harian'] }} hari laporan harian ({{ number_format($baris['volume']) }} cc)"></div>
+                                    </div>
+                                    <div class="relative flex h-full w-1/4 max-w-[18px] items-end">
+                                        <div class="w-full rounded-t-lg bg-gradient-to-t from-rose-500 to-rose-300 transition-all duration-500"
+                                             style="height: {{ max($tinggiSurat, 2) }}%"
+                                             title="{{ $baris['label'] }} · {{ $baris['surat'] }} surat jalan keluar"></div>
                                     </div>
                                 </div>
                                 <p class="text-[11px] font-semibold text-slate-500">{{ $baris['label'] }}</p>
@@ -306,6 +387,9 @@
                             ['label' => 'Item order masuk', 'nilai' => number_format($ringkasBulanIni['order']) . ' item', 'warna' => 'text-indigo-600'],
                             ['label' => 'Laporan oplosan', 'nilai' => number_format($ringkasBulanIni['oplosan']) . ' laporan', 'warna' => 'text-blue-600'],
                             ['label' => 'Total qty oplosan', 'nilai' => number_format($ringkasBulanIni['cc']) . ' CC', 'warna' => 'text-amber-600'],
+                            ['label' => 'Laporan harian oplosan', 'nilai' => number_format($ringkasBulanIni['harian']) . ' pekerjaan', 'warna' => 'text-emerald-600'],
+                            ['label' => 'Volume harian oplosan', 'nilai' => number_format($ringkasBulanIni['volume']) . ' cc', 'warna' => 'text-teal-600'],
+                            ['label' => 'Surat jalan keluar', 'nilai' => number_format($ringkasBulanIni['surat']) . ' surat', 'warna' => 'text-rose-600'],
                         ];
                     @endphp
 
@@ -594,6 +678,116 @@
                         @endforeach
                     </ul>
                     <x-pager :paginator="$aktivitasOrder" anchor="aktivitas-order" />
+                @endif
+            </div>
+        </div>
+
+        {{-- ================= AKTIVITAS LAPORAN HARIAN & SURAT JALAN ================= --}}
+        {{-- Dua kartu ini disusun berpasangan seperti kartu oplosan & order di
+             atas, jadi dashboard menampilkan keempat modul secara lengkap.
+             Penomoran halamannya terpisah (hal_harian & hal_surat) supaya
+             membuka halaman salah satunya tidak menggeser yang lain. --}}
+        <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+            {{-- Laporan harian oplosan terbaru --}}
+            <div class="card overflow-hidden">
+                <div class="card-head flex">
+                    <div>
+                        <h2 class="card-title">Laporan Harian Terbaru</h2>
+                        <p class="card-sub">
+                            {{ $aktivitasHarian->lastPage() > 1 ? 'Halaman ' . $aktivitasHarian->currentPage() . ' dari ' . $aktivitasHarian->lastPage() : 'Seluruh' }}
+                            tanggal kerja periode ini ({{ number_format($aktivitasHarian->total()) }} total).
+                        </p>
+                    </div>
+                    <a href="{{ route('laporan-harian.index') }}" class="text-xs font-bold text-emerald-600 transition hover:text-emerald-700">Lihat semua →</a>
+                </div>
+
+                @if ($aktivitasHarian->isEmpty())
+                    <div class="px-6 py-10 text-center">
+                        <p class="text-sm font-semibold text-slate-700">Belum ada laporan harian</p>
+                        <p class="mt-1 text-xs text-slate-500">Data akan muncul setelah pekerjaan oplosan harian dicatat.</p>
+                    </div>
+                @else
+                    <ul class="divide-y divide-slate-100/70">
+                        @foreach ($aktivitasHarian as $hari)
+                            @php
+                                $barisHari = $hari['items'];
+                                $samaHari = $barisHari->where('hasil_matching', 'Sama')->count();
+                            @endphp
+                            <li>
+                                <a href="{{ route('laporan-harian.index', ['bulan' => $hari['tanggal']?->format('m'), 'tahun' => $hari['tanggal']?->format('Y')]) }}"
+                                   class="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-emerald-50/40 sm:px-5"
+                                   title="Buka laporan harian tanggal ini">
+                                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                        </svg>
+                                    </span>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="truncate text-sm font-semibold text-slate-800">{{ \App\Support\Tanggal::panjang($hari['tanggal']) }}</p>
+                                        <p class="truncate text-[11px] text-slate-500">
+                                            {{ $barisHari->count() }} pekerjaan · {{ $barisHari->pluck('plat_nomor')->filter()->unique()->take(2)->implode(', ') }}@if ($barisHari->pluck('plat_nomor')->filter()->unique()->count() > 2), dll.@endif
+                                        </p>
+                                    </div>
+                                    <div class="shrink-0 text-right">
+                                        <p class="text-sm font-bold text-slate-900">{{ number_format($barisHari->sum('volume_cc')) }} cc</p>
+                                        <p class="text-[11px] text-slate-500">
+                                            {{ $barisHari->count() > 0 ? round($samaHari / $barisHari->count() * 100) : 0 }}% matching sama
+                                        </p>
+                                    </div>
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                    <x-pager :paginator="$aktivitasHarian" anchor="aktivitas-harian" />
+                @endif
+            </div>
+
+            {{-- Surat jalan terbaru --}}
+            <div class="card overflow-hidden">
+                <div class="card-head flex">
+                    <div>
+                        <h2 class="card-title">Surat Jalan Terbaru</h2>
+                        <p class="card-sub">
+                            {{ $aktivitasSurat->lastPage() > 1 ? 'Halaman ' . $aktivitasSurat->currentPage() . ' dari ' . $aktivitasSurat->lastPage() : 'Seluruh' }}
+                            surat periode ini ({{ number_format($aktivitasSurat->total()) }} total).
+                        </p>
+                    </div>
+                    <a href="{{ route('surat-jalan.index') }}" class="text-xs font-bold text-rose-600 transition hover:text-rose-700">Lihat semua →</a>
+                </div>
+
+                @if ($aktivitasSurat->isEmpty())
+                    <div class="px-6 py-10 text-center">
+                        <p class="text-sm font-semibold text-slate-700">Belum ada surat jalan</p>
+                        <p class="mt-1 text-xs text-slate-500">Data akan muncul setelah barang keluar gudang dicatat.</p>
+                    </div>
+                @else
+                    <ul class="divide-y divide-slate-100/70">
+                        @foreach ($aktivitasSurat as $surat)
+                            @php $barangPertama = $surat['items']->first(); @endphp
+                            <li>
+                                <a href="{{ route('surat-jalan.index') }}"
+                                   class="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-rose-50/40 sm:px-5"
+                                   title="Buka halaman surat jalan">
+                                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                    </span>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="truncate text-sm font-semibold text-slate-800">{{ $surat['nomor'] ?? 'Tanpa nomor' }}</p>
+                                        <p class="truncate text-[11px] text-slate-500">
+                                            {{ \App\Support\Tanggal::panjang($surat['tanggal']) }} · {{ $barangPertama->nama_barang }}@if ($surat['jumlahItem'] > 1), dll.@endif
+                                        </p>
+                                    </div>
+                                    <div class="shrink-0 text-right">
+                                        <p class="text-sm font-bold text-slate-900">{{ number_format($surat['total']) }} <span class="text-[11px] font-semibold text-slate-400">barang</span></p>
+                                        <p class="text-[11px] text-slate-500">{{ $barangPertama->cabang_area }}</p>
+                                    </div>
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                    <x-pager :paginator="$aktivitasSurat" anchor="aktivitas-surat" />
                 @endif
             </div>
         </div>

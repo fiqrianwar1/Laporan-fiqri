@@ -42,6 +42,13 @@ await masuk(tinter, AKUN.tinter)
 await tinter.goto(`${BASE}/dashboard`, { waitUntil: 'networkidle' })
 await jepret(tinter, 'dashboard-desktop')
 
+// Dashboard sekarang memuat keempat modul; bagian bawah (laporan harian &
+// surat jalan) dijepret penuh supaya ikut terdokumentasi.
+await jepret(tinter, 'dashboard-desktop-penuh', { penuh: true })
+
+await tinter.goto(`${BASE}/surat-jalan`, { waitUntil: 'networkidle' })
+await jepret(tinter, 'surat-jalan-desktop')
+
 await tinter.goto(`${BASE}/laporan-oplosan`, { waitUntil: 'networkidle' })
 await jepret(tinter, 'laporan-oplosan-desktop')
 
@@ -81,6 +88,11 @@ await masuk(manajer, AKUN.manajer)
 
 await manajer.goto(`${BASE}/manajer`, { waitUntil: 'networkidle' })
 await jepret(manajer, 'mode-manajer')
+
+await jepret(manajer, 'mode-manajer-penuh', { penuh: true })
+
+await manajer.goto(`${BASE}/manajer/surat-jalan`, { waitUntil: 'networkidle' })
+await jepret(manajer, 'mode-manajer-surat-jalan', { penuh: true })
 
 await manajer.goto(`${BASE}/manajer/laporan-harian`, { waitUntil: 'networkidle' })
 await jepret(manajer, 'mode-manajer-laporan-harian', { penuh: true })

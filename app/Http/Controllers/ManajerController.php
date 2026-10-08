@@ -91,6 +91,24 @@ class ManajerController extends Controller
 
         $oplosan = $this->filterPeriode(LaporanOplosan::query(), $bulan, $tahun)->get();
         $orders = $this->filterPeriode(RiwayatOrder::query(), $bulan, $tahun)->get();
+        $harian = $this->filterPeriode(LaporanHarianOplosan::query(), $bulan, $tahun)->get();
+        $suratBaris = $this->filterPeriode(SuratJalan::query(), $bulan, $tahun)->get();
+
+        // ===== Laporan harian oplosan (mutu kerja) =====
+        $totalHarian = $harian->count();
+        $totalVolumeHarian = $harian->sum('volume_cc');
+        $jumlahMatchingSama = $harian->where('hasil_matching', 'Sama')->count();
+        $persenMatchingSama = $totalHarian > 0 ? round($jumlahMatchingSama / $totalHarian * 100) : 0;
+        $totalDurasiHarian = $harian->sum(fn ($baris) => (int) $baris->durasi_menit);
+
+        // ===== Surat jalan (barang keluar gudang) =====
+        // Satu surat bisa berisi banyak barang, jadi jumlah surat dihitung
+        // per nomor surat - bukan per baris barang.
+        $semuaSurat = $this->kelompokkanSurat($suratBaris)
+            ->sortByDesc(fn ($surat) => $surat['tanggal']?->timestamp ?? 0)
+            ->values();
+        $totalSurat = $semuaSurat->count();
+        $totalBarangKeluar = $suratBaris->sum('jumlah');
 
         // ===== KPI utama =====
         $totalBelanja = $orders->sum(fn ($order) => $order->total_item);
@@ -138,6 +156,10 @@ class ManajerController extends Controller
             'order'       => RiwayatOrder::where('tanggal', '>=', $awalBulanIni)->count(),
             'oplosan'     => LaporanOplosan::where('tanggal', '>=', $awalBulanIni)->count(),
             'cc'          => LaporanOplosan::where('tanggal', '>=', $awalBulanIni)->get()->sum('qty_cc'),
+            'harian'      => LaporanHarianOplosan::where('tanggal', '>=', $awalBulanIni)->count(),
+            'volume'      => LaporanHarianOplosan::where('tanggal', '>=', $awalBulanIni)->get()->sum('volume_cc'),
+            'surat'       => SuratJalan::where('tanggal', '>=', $awalBulanIni)->get()
+                ->pluck('nomor_surat_bersih')->unique()->count(),
         ];
 
         $periode = $this->pilihanPeriode();
@@ -159,6 +181,19 @@ class ManajerController extends Controller
             'perluPerhatian'    => $perluPerhatian,
             'ambangPerhatian'   => $ambangPerhatian,
             'ringkasBulanIni'   => $ringkasBulanIni,
+            'totalHarian'       => $totalHarian,
+            'totalVolumeHarian' => $totalVolumeHarian,
+            'persenMatchingSama' => $persenMatchingSama,
+            'jumlahMatchingSama' => $jumlahMatchingSama,
+            'rataDurasiHarian'  => $totalHarian > 0 ? (int) round($totalDurasiHarian / $totalHarian) : 0,
+            'totalSurat'        => $totalSurat,
+            'totalBarisSurat'   => $suratBaris->count(),
+            'totalBarangKeluar' => $totalBarangKeluar,
+            'rataSurat'         => $totalSurat > 0 ? $totalBarangKeluar / $totalSurat : 0,
+            'aktivitasHarian'   => $harian->sortByDesc('tanggal')->take(5)->values(),
+            'aktivitasSurat'    => $semuaSurat->take(5),
+            'perluMatching'     => $harian->where('hasil_matching', '!=', 'Sama')
+                ->sortByDesc('tanggal')->take(5)->values(),
             'tren'              => $this->trenBulanan($bulan ?: now()->month, $tahun ?: now()->year),
             'topUnit'           => $this->topUnit($bulan, $tahun),
             'topPemasok'        => $this->topPemasok($bulan, $tahun),

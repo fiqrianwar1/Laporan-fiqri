@@ -22,6 +22,20 @@
             </div>
 
             <div class="page-actions">
+                <a href="{{ route('manajer.laporan-harian', request()->query()) }}" class="btn btn-outline btn-sm">
+                    <svg class="h-4 w-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    Laporan Harian
+                </a>
+                <a href="{{ route('manajer.surat-jalan', request()->query()) }}" class="btn btn-outline btn-sm">
+                    <svg class="h-4 w-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Surat Jalan
+                </a>
                 <a href="{{ route('manajer.riwayat-order', request()->query()) }}" class="btn btn-outline btn-sm">
                     <svg class="h-4 w-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -81,6 +95,68 @@
 
             @foreach ($kpi as $kartu)
                 {{-- Ukuran kartu diatur .stat-card (lihat app.css). --}}
+                <div class="stat-card">
+                    <div class="absolute -right-4 -top-4 h-24 w-24 rounded-full {{ $kartu['glow'] }} blur-2xl transition-all group-hover:scale-125"></div>
+                    <div class="relative z-10 flex items-start gap-3.5">
+                        <div class="stat-icon bg-gradient-to-br {{ $kartu['warna'] }}">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $kartu['icon'] }}"/>
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="stat-label">{{ $kartu['label'] }}</p>
+                            <p class="angka-kartu mt-1">{{ $kartu['nilai'] }}</p>
+                            <p class="mt-0.5 text-xs text-slate-500">{{ $kartu['sub'] }}</p>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        {{-- ================= KPI LAPORAN HARIAN & SURAT JALAN ================= --}}
+        {{-- Melengkapi KPI biaya di atas: laporan harian menyorot MUTU KERJA
+             (persentase matching warna & lama pengerjaan), surat jalan
+             menyorot arus barang keluar gudang. --}}
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            @php
+                $kpiOperasional = [
+                    [
+                        'label' => 'Laporan Harian Oplosan',
+                        'nilai' => number_format($totalHarian),
+                        'sub'   => number_format($totalVolumeHarian) . ' cc total volume',
+                        'warna' => 'from-emerald-500 to-teal-600',
+                        'glow'  => 'bg-emerald-500/10',
+                        'icon'  => 'M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+                    ],
+                    [
+                        'label' => 'Matching Warna Sama',
+                        'nilai' => $persenMatchingSama . '%',
+                        'sub'   => number_format($jumlahMatchingSama) . ' dari ' . number_format($totalHarian) . ' pekerjaan'
+                            . ($rataDurasiHarian > 0 ? ' · rata-rata ' . $rataDurasiHarian . ' menit' : ''),
+                        'warna' => 'from-violet-500 to-fuchsia-600',
+                        'glow'  => 'bg-violet-500/10',
+                        'icon'  => 'M5 13l4 4L19 7',
+                    ],
+                    [
+                        'label' => 'Total Surat Jalan',
+                        'nilai' => number_format($totalSurat),
+                        'sub'   => number_format($totalBarisSurat) . ' baris barang keluar',
+                        'warna' => 'from-rose-500 to-orange-500',
+                        'glow'  => 'bg-rose-500/10',
+                        'icon'  => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+                    ],
+                    [
+                        'label' => 'Barang Keluar Gudang',
+                        'nilai' => number_format($totalBarangKeluar),
+                        'sub'   => 'Rata-rata ' . number_format($rataSurat, 1) . ' barang / surat',
+                        'warna' => 'from-sky-500 to-blue-600',
+                        'glow'  => 'bg-sky-500/10',
+                        'icon'  => 'M5 17a2 2 0 104 0 2 2 0 00-4 0Zm10 0a2 2 0 104 0 2 2 0 00-4 0ZM3 6h2l2.4 10.2A2 2 0 009.35 17.6h8.3a2 2 0 001.95-1.6L21 9H6',
+                    ],
+                ];
+            @endphp
+
+            @foreach ($kpiOperasional as $kartu)
                 <div class="stat-card">
                     <div class="absolute -right-4 -top-4 h-24 w-24 rounded-full {{ $kartu['glow'] }} blur-2xl transition-all group-hover:scale-125"></div>
                     <div class="relative z-10 flex items-start gap-3.5">
@@ -282,6 +358,18 @@
                     <div class="flex items-center justify-between gap-3 rounded-xl border-slate-200/70 bg-white/70 px-3.5 py-3">
                         <span class="text-sm font-medium text-slate-600">Total qty oplosan</span>
                         <span class="text-sm font-bold text-amber-600">{{ number_format($ringkasBulanIni['cc']) }} CC</span>
+                    </div>
+                    <div class="flex items-center justify-between gap-3 rounded-xl border-slate-200/70 bg-white/70 px-3.5 py-3">
+                        <span class="text-sm font-medium text-slate-600">Laporan harian oplosan</span>
+                        <span class="text-sm font-bold text-emerald-600">{{ number_format($ringkasBulanIni['harian']) }} pekerjaan</span>
+                    </div>
+                    <div class="flex items-center justify-between gap-3 rounded-xl border-slate-200/70 bg-white/70 px-3.5 py-3">
+                        <span class="text-sm font-medium text-slate-600">Volume harian oplosan</span>
+                        <span class="text-sm font-bold text-teal-600">{{ number_format($ringkasBulanIni['volume']) }} cc</span>
+                    </div>
+                    <div class="flex items-center justify-between gap-3 rounded-xl border-slate-200/70 bg-white/70 px-3.5 py-3">
+                        <span class="text-sm font-medium text-slate-600">Surat jalan keluar</span>
+                        <span class="text-sm font-bold text-rose-600">{{ number_format($ringkasBulanIni['surat']) }} surat</span>
                     </div>
 
                     <p class="pt-1 text-[11px] leading-relaxed text-slate-400">
@@ -485,6 +573,113 @@
                     @endforeach
                 </ul>
             @endif
+        </div>
+
+        {{-- ================= PANTAU HARIAN & SURAT JALAN ================= --}}
+        {{-- Dua daftar ini melengkapi aktivitas oplosan & order di atas,
+             supaya dari dashboard manajer bisa langsung dilihat: mutu kerja
+             oplosan harian (yang belum matching sama) dan barang apa saja
+             yang baru keluar gudang. --}}
+        <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+            {{-- Laporan harian: matching belum sama --}}
+            <div class="card overflow-hidden">
+                <div class="card-head flex">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/30">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="card-title">Matching Belum Sama</h2>
+                            <p class="card-sub">Pekerjaan harian yang warnanya belum pas - perlu ditelusuri.</p>
+                        </div>
+                    </div>
+                    <a href="{{ route('manajer.laporan-harian', request()->query()) }}" class="text-xs font-bold text-emerald-600 transition hover:text-emerald-700">Lihat semua →</a>
+                </div>
+
+                @if ($perluMatching->isEmpty())
+                    <div class="px-6 py-10 text-center">
+                        <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        <p class="text-sm font-semibold text-slate-700">Semua matching warna sudah sama</p>
+                        <p class="mt-1 text-xs text-slate-500">Tidak ada pekerjaan yang perlu ditelusuri di periode ini.</p>
+                    </div>
+                @else
+                    <ul class="divide-y divide-slate-100/70">
+                        @foreach ($perluMatching as $baris)
+                            <li class="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-emerald-50/40 sm:px-5">
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01"/>
+                                    </svg>
+                                </span>
+                                <div class="min-w-0 flex-1">
+                                    <p class="truncate text-sm font-bold text-slate-800">{{ $baris->plat_nomor }} · {{ $baris->kode_warna }}</p>
+                                    <p class="truncate text-[11px] text-slate-500">
+                                        {{ \App\Support\Tanggal::panjang($baris->tanggal) }} · {{ $baris->bahan_cat }} · {{ number_format($baris->volume_cc) }} cc
+                                    </p>
+                                </div>
+                                <div class="shrink-0 text-right">
+                                    <p class="text-sm font-bold text-amber-600">{{ $baris->hasil_matching }}</p>
+                                    <p class="text-[11px] text-slate-500">{{ $baris->cabang_area }}</p>
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
+
+            {{-- Surat jalan terbaru --}}
+            <div class="card overflow-hidden">
+                <div class="card-head flex">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-orange-500 text-white shadow-md shadow-rose-500/30">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="card-title">Barang Keluar Terbaru</h2>
+                            <p class="card-sub">Surat jalan terakhir - kemana barang dikirim dan berapa jumlahnya.</p>
+                        </div>
+                    </div>
+                    <a href="{{ route('manajer.surat-jalan', request()->query()) }}" class="text-xs font-bold text-rose-600 transition hover:text-rose-700">Lihat semua →</a>
+                </div>
+
+                @if ($aktivitasSurat->isEmpty())
+                    <div class="px-6 py-10 text-center">
+                        <p class="text-sm font-semibold text-slate-700">Belum ada surat jalan</p>
+                        <p class="mt-1 text-xs text-slate-500">Data muncul setelah barang keluar gudang dicatat.</p>
+                    </div>
+                @else
+                    <ul class="divide-y divide-slate-100/70">
+                        @foreach ($aktivitasSurat as $surat)
+                            @php $barangPertama = $surat['items']->first(); @endphp
+                            <li class="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-rose-50/40 sm:px-5">
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                    </svg>
+                                </span>
+                                <div class="min-w-0 flex-1">
+                                    <p class="truncate text-sm font-bold text-slate-800">{{ $surat['nomor'] ?? 'Tanpa nomor' }}</p>
+                                    <p class="truncate text-[11px] text-slate-500">
+                                        {{ \App\Support\Tanggal::panjang($surat['tanggal']) }} · {{ $barangPertama->nama_barang }}@if ($surat['jumlahItem'] > 1), dll.@endif
+                                    </p>
+                                </div>
+                                <div class="shrink-0 text-right">
+                                    <p class="text-sm font-bold text-slate-900">{{ number_format($surat['total']) }} <span class="text-[11px] font-semibold text-slate-400">barang</span></p>
+                                    <p class="text-[11px] text-slate-500">{{ $barangPertama->cabang_area }}</p>
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
         </div>
 
         <p class="pb-2 text-center text-[11px] text-slate-400">

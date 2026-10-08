@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LaporanHarianOplosan;
 use App\Models\LaporanOplosan;
 use App\Models\RiwayatOrder;
+use App\Models\SuratJalan;
 use App\Support\Cabang;
+use App\Support\HarianGrouper;
 use App\Support\NotaGrouper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -39,6 +42,8 @@ class DashboardController extends Controller
         // Data periode terpilih dipakai untuk kartu statistik & daftar terbaru.
         $oplosan = $filterPeriode(LaporanOplosan::query())->get();
         $orders = $filterPeriode(RiwayatOrder::query())->get();
+        $harian = $filterPeriode(LaporanHarianOplosan::query())->get();
+        $surats = $filterPeriode(SuratJalan::query())->get();
 
         $totalOplosan = $oplosan->count();
         $totalCc = $oplosan->sum('qty_cc');
@@ -46,25 +51,55 @@ class DashboardController extends Controller
         $totalOrder = $orders->count();
         $totalBelanja = $orders->sum(fn ($order) => $order->total_item);
 
+        // Statistik laporan harian oplosan (mutu kerja) & surat jalan.
+        $totalHarian = $harian->count();
+        $totalVolumeHarian = $harian->sum('volume_cc');
+        $jumlahMatchingSama = $harian->where('hasil_matching', 'Sama')->count();
+        $persenMatchingSama = $totalHarian > 0 ? round($jumlahMatchingSama / $totalHarian * 100) : 0;
+        $totalDurasiHarian = $harian->sum(fn ($baris) => (int) $baris->durasi_menit);
+
+        // Surat jalan: satu surat bisa berisi banyak barang, jadi jumlah
+        // suratnya dihitung per nomor surat - bukan per baris barang.
+        $suratPeriode = NotaGrouper::withTotals(
+            NotaGrouper::group(
+                $surats,
+                fn ($item) => $item->nomor_surat_bersih,
+                fn ($item) => $item->nomor_surat,
+            ),
+            fn ($item) => (float) $item->jumlah,
+        );
+        $totalSurat = $suratPeriode->count();
+        $totalBarangKeluar = $surats->sum('jumlah');
+
         // Nilai rata-rata per transaksi (hindari pembagian nol).
         $rataOplosan = $totalOplosan > 0 ? $totalBiayaOplosan / $totalOplosan : 0;
         $rataOrder = $totalOrder > 0 ? $totalBelanja / $totalOrder : 0;
+        $rataPerSurat = $totalSurat > 0 ? $totalBarangKeluar / $totalSurat : 0;
 
         // Statistik bulan berjalan (selalu dihitung terpisah dari filter).
         $awalBulanIni = now()->startOfMonth();
         $orderBulanIni = RiwayatOrder::where('tanggal', '>=', $awalBulanIni)->get();
         $oplosanBulanIni = LaporanOplosan::where('tanggal', '>=', $awalBulanIni)->get();
 
+        $harianBulanIni = LaporanHarianOplosan::where('tanggal', '>=', $awalBulanIni)->get();
+        $suratBulanIni = SuratJalan::where('tanggal', '>=', $awalBulanIni)->get();
+
         $ringkasBulanIni = [
             'belanja' => $orderBulanIni->sum(fn ($order) => $order->total_item),
             'order'   => $orderBulanIni->count(),
             'oplosan' => $oplosanBulanIni->count(),
             'cc'      => $oplosanBulanIni->sum('qty_cc'),
+            'harian'  => $harianBulanIni->count(),
+            'volume'  => $harianBulanIni->sum('volume_cc'),
+            'surat'   => $suratBulanIni->pluck('nomor_surat_bersih')->unique()->count(),
         ];
 
-        // Pilihan tahun untuk filter.
+        // Pilihan tahun untuk filter, digabung dari keempat jenis data supaya
+        // tahun yang cuma ada di laporan harian / surat jalan tetap muncul.
         $daftarTahun = LaporanOplosan::query()->pluck('tanggal')
             ->merge(RiwayatOrder::query()->pluck('tanggal'))
+            ->merge(LaporanHarianOplosan::query()->pluck('tanggal'))
+            ->merge(SuratJalan::query()->pluck('tanggal'))
             ->filter()
             ->map(fn ($tanggal) => (int) $tanggal->format('Y'))
             ->push(now()->year)
@@ -108,6 +143,21 @@ class DashboardController extends Controller
         $aktivitasOplosan = $this->kueriOplosanTerbaru($bulan, $tahun)->paginate(6, ['*'], 'hal_oplosan')->withQueryString();
         $aktivitasOrder = $this->paginatorNotaOrderTerbaru($bulan, $tahun, 5, 'hal_order')->withQueryString();
 
+        // Laporan harian & surat jalan: dikelompokkan dulu (per tanggal /
+        // per nomor surat), baru dipotong per halaman masing-masing.
+        $aktivitasHarian = RiwayatOrderController::paginateNotas(
+            HarianGrouper::group($harian)->reverse()->values(),
+            5,
+            $request,
+            'hal_harian',
+        );
+        $aktivitasSurat = RiwayatOrderController::paginateNotas(
+            $suratPeriode->sortByDesc(fn ($surat) => $surat['tanggal']?->timestamp ?? 0)->values(),
+            5,
+            $request,
+            'hal_surat',
+        );
+
         return view('dashboard', [
             'bulan'            => $bulan,
             'tahun'            => $tahun,
@@ -118,6 +168,16 @@ class DashboardController extends Controller
             'totalOplosan'     => $totalOplosan,
             'totalCc'          => $totalCc,
             'totalBiayaOplosan'=> $totalBiayaOplosan,
+            'totalHarian'      => $totalHarian,
+            'totalVolumeHarian' => $totalVolumeHarian,
+            'persenMatchingSama' => $persenMatchingSama,
+            'jumlahMatchingSama' => $jumlahMatchingSama,
+            'rataDurasiHarian' => $totalHarian > 0 ? (int) round($totalDurasiHarian / $totalHarian) : 0,
+            'totalDurasiHarian' => $totalDurasiHarian,
+            'totalSurat'       => $totalSurat,
+            'totalBarisSurat'  => $surats->count(),
+            'totalBarangKeluar' => $totalBarangKeluar,
+            'rataPerSurat'     => $rataPerSurat,
             'totalOrder'       => $totalOrder,
             'totalBelanja'     => $totalBelanja,
             'rataOplosan'      => $rataOplosan,
@@ -130,7 +190,8 @@ class DashboardController extends Controller
             'orderTerbaru'     => $this->orderTerbaru($bulan, $tahun),
             'aktivitasOplosan' => $aktivitasOplosan,
             'aktivitasOrder'   => $aktivitasOrder,
-            'semuaPeriode'     => $semuaPeriode,
+            'aktivitasHarian'  => $aktivitasHarian,
+            'aktivitasSurat'   => $aktivitasSurat,
         ]);
     }
 
@@ -218,6 +279,17 @@ class DashboardController extends Controller
             ->get()
             ->groupBy(fn ($item) => $item->tanggal->format('Y-m'));
 
+        // Laporan harian dihitung per TANGGAL (satu hari = satu blok), karena
+        // satu tanggal biasanya memuat beberapa baris pekerjaan.
+        $harian = LaporanHarianOplosan::whereBetween('tanggal', [$awal->copy()->startOfMonth(), $akhir->copy()->endOfMonth()])
+            ->get()
+            ->groupBy(fn ($item) => $item->tanggal->format('Y-m'));
+
+        // Surat jalan dihitung per NOMOR SURAT, bukan per baris barang.
+        $surat = SuratJalan::whereBetween('tanggal', [$awal->copy()->startOfMonth(), $akhir->copy()->endOfMonth()])
+            ->get()
+            ->groupBy(fn ($item) => $item->tanggal->format('Y-m'));
+
         $namaBulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
         $hasil = [];
 
@@ -226,6 +298,8 @@ class DashboardController extends Controller
             $kunci = $kursor->format('Y-m');
             $barisOplosan = $oplosan->get($kunci, collect());
             $barisOrder = $orders->get($kunci, collect());
+            $barisHarian = $harian->get($kunci, collect());
+            $barisSurat = $surat->get($kunci, collect());
 
             $hasil[] = [
                 'label'   => $namaBulan[$kursor->month - 1] . ' / ' . $kursor->format('y'),
@@ -233,6 +307,9 @@ class DashboardController extends Controller
                 'cc'      => $barisOplosan->sum('qty_cc'),
                 'order'   => $barisOrder->count(),
                 'belanja' => $barisOrder->sum(fn ($order) => $order->total_item),
+                'harian'  => $barisHarian->pluck('tanggal')->map(fn ($t) => $t->format('Y-m-d'))->unique()->count(),
+                'volume'  => $barisHarian->sum('volume_cc'),
+                'surat'   => $barisSurat->pluck('nomor_surat_bersih')->unique()->count(),
             ];
         }
 

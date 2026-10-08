@@ -590,16 +590,23 @@
                                 { label: 'Laporan Oplosan', sub: 'Lihat rekap tinting per nota', url: @json(route('laporan-oplosan.index')) },
                                 { label: 'Riwayat Order', sub: 'Lihat belanja bahan & consumable', url: @json(route('riwayat-order.index')) },
                                 { label: 'Surat Jalan', sub: 'Lihat barang keluar gudang', url: @json(route('surat-jalan.index')) },
-                                { label: 'Preview PDF Laporan Harian', sub: 'Cek dokumen sebelum cetak', url: @json(route('laporan-harian.preview')) },
-                                { label: 'Preview PDF Laporan Oplosan', sub: 'Cek dokumen sebelum cetak', url: @json(route('laporan-oplosan.preview')) },
-                                { label: 'Preview PDF Riwayat Order', sub: 'Cek dokumen sebelum cetak', url: @json(route('riwayat-order.preview')) },
-                                { label: 'Preview PDF Surat Jalan', sub: 'Cek dokumen sebelum cetak', url: @json(route('surat-jalan.preview')) },
-                                { label: 'Download PDF Laporan Harian', sub: 'Unduh berkas langsung', url: @json(route('laporan-harian.pdf')) },
-                                { label: 'Download PDF Laporan Oplosan', sub: 'Unduh berkas langsung', url: @json(route('laporan-oplosan.pdf')) },
-                                { label: 'Download PDF Riwayat Order', sub: 'Unduh berkas langsung', url: @json(route('riwayat-order.pdf')) },
-                                { label: 'Download PDF Surat Jalan', sub: 'Unduh berkas langsung', url: @json(route('surat-jalan.pdf')) },
+                                { label: 'PDF Laporan Harian', sub: 'Lihat dokumen sebelum cetak', url: @json(route('laporan-harian.preview')) },
+                                { label: 'PDF Laporan Oplosan', sub: 'Lihat dokumen sebelum cetak', url: @json(route('laporan-oplosan.preview')) },
+                                { label: 'PDF Riwayat Order', sub: 'Lihat dokumen sebelum cetak', url: @json(route('riwayat-order.preview')) },
+                                { label: 'PDF Surat Jalan', sub: 'Lihat dokumen sebelum cetak', url: @json(route('surat-jalan.preview')) },
+                                { label: 'Unduh PDF Laporan Harian', sub: 'Simpan berkas ke komputer', url: @json(route('laporan-harian.pdf')) },
+                                { label: 'Unduh PDF Laporan Oplosan', sub: 'Simpan berkas ke komputer', url: @json(route('laporan-oplosan.pdf')) },
+                                { label: 'Unduh PDF Riwayat Order', sub: 'Simpan berkas ke komputer', url: @json(route('riwayat-order.pdf')) },
+                                { label: 'Unduh PDF Surat Jalan', sub: 'Simpan berkas ke komputer', url: @json(route('surat-jalan.pdf')) },
                                 { label: 'Keluar', sub: 'Logout dari sistem', url: @json(route('logout')), post: true },
                             ];
+
+                            if (@json(auth()->check() && auth()->user()->role === 'manajer')) {
+                                daftarMenu.unshift(
+                                    { label: 'Pantau Laporan Harian', sub: 'Periksa mutu kerja oplosan', url: @json(route('manajer.laporan-harian')) },
+                                    { label: 'Pantau Surat Jalan', sub: 'Periksa barang keluar gudang', url: @json(route('manajer.surat-jalan')) }
+                                );
+                            }
 
                             if (bolehIsi) {
                                 daftarMenu.unshift(

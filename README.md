@@ -9,9 +9,16 @@ Dibuat dengan Laravel 13 + Tailwind CSS 4, dengan tampilan yang menyesuaikan oto
 ## Tampilan Aplikasi
 
 ### Dashboard
-Ringkasan statistik, tren 6 bulan, dan ringkasan bulan berjalan.
+Ringkasan keempat modul dalam satu layar: kartu statistik oplosan, belanja, laporan harian,
+dan surat jalan; tren 6 bulan, ringkasan bulan berjalan, dan daftar aktivitas terbaru
+tiap modul.
 
 ![Dashboard](docs/screenshots/dashboard-desktop.png)
+
+Bagian bawah dashboard memuat daftar **Laporan Harian Terbaru** dan **Surat Jalan Terbaru**,
+masing-masing dengan penomoran halaman sendiri:
+
+![Dashboard bagian bawah](docs/screenshots/dashboard-desktop-penuh.png)
 
 ### Laporan Oplosan
 Rekap tinting per unit, dipisah per cabang, dengan total nilai tiap nota.
@@ -44,9 +51,18 @@ Tampilan pengawasan — menyorot biaya yang menyimpang dari rata-rata dan mutu k
 
 ![Dashboard Manajer](docs/screenshots/mode-manajer.png)
 
+Kartu KPI-nya dibagi dua baris: biaya (pengeluaran, belanja bahan, biaya oplosan, biaya per CC)
+lalu operasional (laporan harian, matching warna, surat jalan, barang keluar gudang).
+
+![Dashboard Manajer bagian bawah](docs/screenshots/mode-manajer-penuh.png)
+
 **Pantau Laporan Harian** — rekap mutu kerja: persentase matching warna, lama pengerjaan, unit tersibuk, dan catatan yang perlu ditelusuri.
 
 ![Pantau Laporan Harian](docs/screenshots/mode-manajer-laporan-harian.png)
+
+**Pantau Surat Jalan** — rekap barang keluar gudang: barang terbanyak keluar, tujuan pengiriman, dan rincian tiap surat.
+
+![Pantau Surat Jalan](docs/screenshots/mode-manajer-surat-jalan.png)
 
 ### Tampilan di HP
 Bottom navigation, kartu bertumpuk, dan tombol besar supaya nyaman dipakai satu tangan.
@@ -73,7 +89,7 @@ Bottom navigation, kartu bertumpuk, dan tombol besar supaya nyaman dipakai satu 
 - Nomor urut otomatis bila dikosongkan.
 
 ### Laporan & Statistik
-- **Dashboard** — ringkasan statistik, tren 6 bulan, barang paling sering dibeli, kode warna terbanyak, aktivitas terbaru.
+- **Dashboard** — satu halaman memuat keempat modul: total laporan & biaya oplosan, total qty oplosan, item dibeli, total belanja, jumlah laporan harian & volume-nya, persentase matching warna, jumlah surat jalan & barang keluar. Dilengkapi tren 6 bulan (4 seri: oplosan, order, harian, surat), ringkasan bulan berjalan, barang paling sering dibeli, kode warna terbanyak, laporan per cabang, dan daftar aktivitas terbaru tiap modul.
 - **Rekap Harian** — total pekerjaan, total volume, total/rata-rata durasi, persentase matching sama, rincian per cabang, dan bahan cat terbanyak dipakai.
 - **Filter** berdasarkan bulan, tahun, dan cabang.
 - **Rincian per cabang** — total nota, nilai, dan qty dipisah tiap cabang.
@@ -85,24 +101,25 @@ Daftar yang isinya sudah menumpuk tidak dibentangkan semua — dipotong per hala
 
 - **Laporan harian** — 10 tanggal per halaman (satu tanggal = satu blok, dipaginasi per hari).
 - **Laporan oplosan, riwayat order, surat jalan** — 10 nota / surat per halaman.
-- **Dashboard, aktivitas terbaru** — 6 catatan oplosan & 5 nota order per halaman, dengan penomoran halaman terpisah supaya membuka halaman oplosan tidak menggeser daftar order.
-- Nota di dashboard dipotong **per nota**, bukan per baris item, jadi satu nota berisi 7 barang tetap utuh dalam satu halaman.
+- **Dashboard, aktivitas terbaru** — empat daftar (oplosan, order, laporan harian, surat jalan) masing-masing 5–6 baris per halaman, dengan **parameter halaman terpisah** (`hal_oplosan`, `hal_order`, `hal_harian`, `hal_surat`) supaya membuka halaman 2 satu daftar tidak menggeser daftar lainnya.
+- Nota di dashboard dipotong **per nota**, bukan per baris item, jadi satu nota berisi 7 barang tetap utuh dalam satu halaman. Laporan harian dipotong **per tanggal**, surat jalan **per nomor surat**.
 
 ### Hak Akses
 
 | Role | Bisa melakukan |
 |---|---|
 | **Tinter** | Melihat dashboard + **menambah / mengubah / menghapus** laporan (harian, oplosan, order, surat jalan) |
-| **Manajer** | Hanya melihat — tampilan khusus pengawasan (deteksi biaya menyimpang & mutu kerja oplosan) |
+| **Manajer** | Hanya melihat — tampilan khusus pengawasan: dashboard biaya + mutu kerja, plus halaman pantau untuk laporan harian, oplosan, order, dan surat jalan |
 
 ### Tampilan
 - Responsif penuh: **bottom navigation** di HP, sidebar di desktop.
-- Command palette (Ctrl + K) untuk lompat antar halaman.
+- Command palette (Ctrl + K) untuk lompat antar halaman. Daftar menunya menyesuaikan role — manajer mendapat pintasan *Pantau Laporan Harian* & *Pantau Surat Jalan*.
 - Tabel lebar bisa digeser ke samping tanpa merusak layout.
 - Penomoran halaman seragam lewat komponen `x-pager` (elipsis otomatis kalau halamannya banyak).
 
 > Screenshot di atas diambil otomatis lewat `scripts/ambil-screenshot.mjs`
-> (Playwright). Jalankan `node scripts/ambil-screenshot.mjs` kalau tampilan berubah.
+> (Playwright). Jalankan `node scripts/ambil-screenshot.mjs` kalau tampilan berubah —
+> pastikan aplikasi sudah jalan dulu (`APP_BASE_URL` default: `http://laporan-fiqri.test`).
 
 ---
 
@@ -156,6 +173,9 @@ php artisan serve
 
 Buka **http://localhost:8000**
 
+> Ada juga pintasan `composer setup` yang menjalankan langkah 2–5 sekaligus,
+> dan `composer dev` untuk menjalankan server + queue + Vite bersamaan.
+
 ### Akun Bawaan
 
 | Email | Password | Role |
@@ -189,12 +209,12 @@ Kalau HP tidak bisa membuka, jalankan skrip tersebut sebagai **Administrator**.
 ```
 app/
   Http/Controllers/
-    DashboardController.php        Ringkasan statistik
+    DashboardController.php        Ringkasan statistik (4 modul)
     LaporanHarianOplosanController.php  CRUD laporan harian + PDF
     LaporanOplosanController.php   CRUD oplosan + PDF
-    RiwayatOrderController.php     CRUD order + PDF
+    RiwayatOrderController.php     CRUD order + PDF + paginasi bersama
     SuratJalanController.php       CRUD surat jalan + PDF
-    ManajerController.php          Halaman pengawasan
+    ManajerController.php          Halaman pengawasan (4 halaman pantau)
   Models/
     LaporanHarianOplosan.php
     LaporanOplosan.php
@@ -218,13 +238,15 @@ public/images/
   logo.jpg                        Logo untuk sidebar & kop PDF
 
 resources/views/
-  dashboard.blade.php              Dashboard
+  dashboard.blade.php              Dashboard tinter (4 modul)
+  components/pager.blade.php       Penomoran halaman bersama
   laporan_harian/                  Halaman & PDF laporan harian
   laporan_oplosan/                 Halaman & PDF oplosan
   riwayat_order/                   Halaman & PDF order
   surat_jalan/                     Halaman & PDF surat jalan
   manajer/                         Halaman mode pantau
-  layouts/                         Layout utama & manajer
+  layouts/app.blade.php            Layout utama (sidebar + bottom nav)
+  layouts/manajer.blade.php        Menu khusus manajer
 
 database/
   migrations/                      Skema tabel
@@ -258,6 +280,8 @@ Dropdown filter, form input, dan pengelompokan laporan otomatis ikut menyesuaika
 - **Laporan harian per tanggal** — dikelompokkan lewat `App\Support\HarianGrouper`, satu tanggal = satu blok. Tidak ada nomor nota, jadi kuncinya murni tanggal.
 - **Surat jalan per nomor surat** — dikelompokkan lewat `App\Support\NotaGrouper` dengan kunci `nomor surat + tanggal`, jadi satu surat berisi banyak barang tetap dihitung satu surat.
 - **Durasi otomatis** — kalau kolom durasi dikosongkan, `LaporanHarianOplosan::hitungDurasi()` menghitungnya dari jam dibuat & jam selesai (jam selesai lebih awal dianggap lewat tengah malam).
+- **Paginasi dashboard** — dashboard punya empat daftar yang dipotong sendiri-sendiri. `RiwayatOrderController::paginateNotas()` menerima nama parameter halaman (`hal_harian`, `hal_surat`, dan `hal_order` untuk versi paginator nota), supaya membuka halaman 2 salah satu daftar tidak ikut menggeser daftar lainnya. Parameter itu juga disimpan balik ke query string paginator supaya tombol "Berikutnya" tetap membawa filter periode yang aktif.
+- **Ringkasan dashboard** — kartu "Total Laporan Harian" dan "Matching Warna Sama" memakai periode filter; laporan harian dihitung per **baris pekerjaan**, sedangkan tren 6 bulan menghitungnya per **tanggal kerja** (satu hari = satu pekerjaan) supaya angkanya setara dengan daftar yang ditampilkan.
 - **Logo** — `App\Support\Logo::path()` mengembalikan path file (bukan data-URI) karena DomPDF menolak data-URI base64. Lambangnya ditaruh di `public/images/logo.jpg` dan dipakai seragam oleh sidebar, halaman login, serta kop keempat PDF.
 
 ---

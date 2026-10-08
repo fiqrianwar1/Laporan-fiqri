@@ -114,19 +114,33 @@ class RiwayatOrderController extends Controller
     /**
      * Paginasi manual untuk kumpulan nota (Collection).
      * Dipakai bersama oleh halaman tinter & manajer.
+     *
+     * $namaHalaman dipakai kalau satu halaman punya BEBERAPA daftar yang
+     * dipaginasi sendiri-sendiri (mis. dashboard). Kalau semua daftar memakai
+     * "page" yang sama, membuka halaman 2 daftar surat jalan akan ikut
+     * menggeser daftar laporan harian - jadi tiap daftar diberi nama sendiri.
      */
-    public static function paginateNotas($notas, int $perHalaman, Request $request)
-    {
-        $halaman = max(1, (int) $request->input('page', 1));
+    public static function paginateNotas(
+        $notas,
+        int $perHalaman,
+        Request $request,
+        string $namaHalaman = 'page',
+        ?string $namaQuery = null,
+    ) {
+        $namaQuery ??= $namaHalaman;
+        $halaman = max(1, (int) $request->input($namaHalaman, 1));
         $total = $notas->count();
         $potongan = $notas->slice(($halaman - 1) * $perHalaman, $perHalaman)->values();
+
+        $query = $request->query();
+        $query[$namaQuery] = $halaman;
 
         return new \Illuminate\Pagination\LengthAwarePaginator(
             $potongan,
             $total,
             $perHalaman,
             $halaman,
-            ['path' => $request->url(), 'query' => $request->query()],
+            ['path' => $request->url(), 'query' => $query],
         );
     }
 
