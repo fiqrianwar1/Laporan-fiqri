@@ -36,7 +36,17 @@ Thumbs.db
 /qa-*.mjs
 /qa-*.png
 /qa-*.jpg
+/qa-*.ps1
 /bukti-*.png
 /bukti-*.jpg
+/tmp-*
+/tmp_*
 /scripts/_tmp_*
 /scripts/_cek-*
+
+# Dokumen mentah sumber data (PDF/XLSX + foto nota asli - ukurannya besar).
+# Teks hasil ekstraksinya tetap ikut: sumber-data/teks/*.txt
+/sumber-data/*
+!/sumber-data/teks/
+/sumber-data/teks/*
+!/sumber-data/teks/*.txt

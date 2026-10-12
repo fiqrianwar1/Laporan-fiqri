@@ -20,6 +20,7 @@ class RiwayatOrder extends Model
         'satuan',
         'harga_satuan',
         'diskon_persen',
+        'total_baris',
         'foto_faktur',
     ];
 
@@ -27,16 +28,25 @@ class RiwayatOrder extends Model
         'tanggal' => 'date',
         'harga_satuan' => 'decimal:2',
         'diskon_persen' => 'decimal:2',
+        'total_baris' => 'decimal:2',
         'qty' => 'integer',
         'nomor_urut' => 'integer',
     ];
 
     /**
-     * Total sebelum diskon (qty x harga satuan). Dipakai untuk menampilkan
-     * potongan dalam rupiah, bukan hanya persennya.
+     * Total sebelum diskon.
+     *
+     * Kalau faktur sudah mencantumkan nilai total barisnya, nilai itulah yang
+     * dipakai - sebab pada faktur Wira Toyota kolom qty berisi volume cat
+     * (CC/LTR), bukan jumlah barang, jadi qty x harga satuan tidak berlaku.
+     * Kalau kolom total_baris kosong (faktur lama), baru dihitung qty x harga.
      */
     public function getTotalKotorAttribute()
     {
+        if ($this->total_baris !== null) {
+            return (float) $this->total_baris;
+        }
+
         return $this->qty * (float) $this->harga_satuan;
     }
 

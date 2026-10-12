@@ -45,5 +45,10 @@ class DatabaseSeeder extends Seeder
         $this->command?->info("Akun siap dipakai (password: {$password}):");
         $this->command?->line('  tinter@warnatanjungjaya.com  - bisa mengisi laporan');
         $this->command?->line('  manajer@warnatanjungjaya.com - hanya melihat laporan');
+
+        // Data asli September (oplosan & riwayat order) dan laporan harian
+        // diimpor dari folder `sumber-data`. Angka rekapnya divalidasi dulu
+        // di dalam seeder ini, jadi impor berhenti kalau ada yang meleset.
+        $this->call(SumberDataSeeder::class);
     }
 }

@@ -198,8 +198,10 @@
                         <a href="{{ route('surat-jalan.index') }}" class="btn btn-ghost h-[42px] shrink-0">Reset</a>
                     @endif
                 </div>
-            </form>
-        </div>
+                </form>
+
+                <x-bulan-chip :aksi="route('surat-jalan.index')" :bulan="request('bulan')" :tahun="request('tahun')" :cabang="request('cabang')" />
+            </div>
     </div>
 
     {{-- ================= DAFTAR SURAT ================= --}}

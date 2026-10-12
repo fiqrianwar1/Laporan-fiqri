@@ -155,6 +155,65 @@
     @endif
 @endisset
 
+{{-- Bukti foto --}}
+<div class="form-card">
+    <div class="form-card-head">
+        <div class="stat-icon bg-gradient-to-br from-violet-500 to-fuchsia-500">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M4 16.5V5a2 2 0 0 1 2-2h8.586A2 2 0 0 1 16 3.586L20.414 8A2 2 0 0 1 21 9.414V19a2 2 0 0 1-2 2H8m-4-4 4 4m0-4v4"/>
+            </svg>
+        </div>
+        <div class="min-w-0">
+            <h2 class="card-title">Foto Print</h2>
+            <p class="card-sub">Kelola foto bukti surat jalan untuk dokumentasi.</p>
+        </div>
+    </div>
+
+    <div class="p-4 sm:p-5">
+        @isset($data['foto_print'])
+            @if ($data['foto_print'])
+                <div class="mb-4 flex flex-col gap-3 rounded-xl border border-blue-100 bg-blue-50/50 p-3.5 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-blue-100 bg-white text-blue-600">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M4 16l4.586-4.586a2 2 0 0 1 2.828 0L16 16m-2-2 1.586-1.586a2 2 0 0 1 2.828 0L20 14m-6-6h.01M6 20h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-slate-800">Foto print saat ini</p>
+                            <p class="text-xs text-slate-500">Upload file baru untuk menggantinya.</p>
+                        </div>
+                    </div>
+                    <a href="{{ Storage::url($data['foto_print']) }}" target="_blank"
+                       class="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-3.5 py-2 text-xs font-semibold text-blue-600 shadow-sm ring-1 ring-blue-100 transition hover:bg-blue-50">
+                        Lihat Foto
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4m-3-7 5 5m0 0V4m0 5h-5"/>
+                        </svg>
+                    </a>
+                </div>
+            @endif
+        @endisset
+
+        <label for="foto_print"
+               class="group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300/80 bg-white/50 px-6 py-8 text-center transition hover:border-blue-400 hover:bg-white">
+            <div class="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white text-slate-400 shadow-sm ring-1 ring-slate-200 transition-colors group-hover:text-blue-600">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16V4m0 0L8 8m4-4 4 4M5 20h14"/>
+                </svg>
+            </div>
+            <p class="text-sm font-bold text-slate-700">Pilih foto print</p>
+            <p class="mt-1 text-xs text-slate-400">JPG, JPEG, PNG atau format gambar lainnya</p>
+            <input id="foto_print" type="file" name="foto_print" accept="image/*" class="hidden">
+        </label>
+        <p id="file-name" class="mt-2 hidden text-xs font-bold text-blue-600"></p>
+        <p class="mt-2 text-xs text-slate-400">Foto print bersifat opsional dan dapat membantu dokumentasi pengiriman.</p>
+        @error('foto_print') <p class="form-error">{{ $message }}</p> @enderror
+    </div>
+</div>
+
 {{-- Tombol aksi --}}
 <div class="form-actions">
     <div class="flex items-center justify-end gap-3">
@@ -162,3 +221,18 @@
         <button type="submit" class="btn btn-primary flex-1 sm:flex-none">{{ $tombol }}</button>
     </div>
 </div>
+
+<script>
+// Tampilkan nama file yang dipilih supaya pengguna yakin fotonya masuk.
+document.getElementById('foto_print')?.addEventListener('change', function () {
+    const fileName = document.getElementById('file-name');
+    if (!fileName) return;
+
+    if (this.files?.length) {
+        fileName.textContent = `File dipilih: ${this.files[0].name}`;
+        fileName.classList.remove('hidden');
+    } else {
+        fileName.classList.add('hidden');
+    }
+});
+</script>

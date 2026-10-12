@@ -6,6 +6,10 @@
 @theme {
     --font-sans: 'Outfit', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
         'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Warna aksen tabel item: baris yang sedang di-hover ikut ditandai
+       di kolom "No" supaya mata tidak kehilangan baris saat tabelnya lebar. */
+    --color-tabel-baris: oklch(0.97 0.014 254.6);
 }
 
 /* =====================================================================
@@ -264,6 +268,32 @@
         @apply p-3 sm:p-4;
     }
 
+    /* --- Pilihan bulan: chip yang bisa diklik ---
+       Dulu bulan cuma bisa dipilih lewat <select>, jadi pengguna tidak
+       punya jalan pintas dan bulan yang sedang aktif tidak kelihatan.
+       Chip di bawah ini: satu tombol = satu bulan, yang aktif ditandai
+       warna (lihat .bulan-chip.is-aktif). Tampilannya mengikuti gaya
+       .chip yang sudah dipakai di banner, hanya lebih kecil. */
+    .bulan-rail {
+        @apply flex flex-wrap items-center gap-1.5;
+    }
+    .bulan-chip {
+        @apply inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200/80 bg-white/80 px-2.5 py-1.5 text-[11px] font-semibold leading-none text-slate-500 transition-all duration-200;
+    }
+    .bulan-chip:hover {
+        @apply -translate-y-px border-blue-200 bg-white text-blue-700 shadow-sm shadow-blue-500/20;
+    }
+    /* Bulan yang sedang dipakai: biru penuh + tanda centang kecil. */
+    .bulan-chip.is-aktif {
+        @apply border-transparent bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/30;
+    }
+    .bulan-chip.is-aktif .bulan-cek {
+        @apply inline-flex;
+    }
+    .bulan-cek {
+        @apply hidden;
+    }
+
     /* --- Area konten yang diisi tabel daftar --- */
     .table-wrap {
         @apply p-4 sm:p-5;
@@ -356,6 +386,11 @@
     }
     .table-item tbody tr:hover td {
         @apply bg-blue-50/40;
+    }
+    /* Di tabel item surat jalan, kolom pertama bisa ikut menempel saat tabel
+       digeser ke samping, jadi latar hover-nya dibuat solid. */
+    .table tbody tr:hover td.baris-no {
+        background-color: var(--color-tabel-baris);
     }
     /* Nomor baris: kecil dan tidak mencolok. */
     .td-no {

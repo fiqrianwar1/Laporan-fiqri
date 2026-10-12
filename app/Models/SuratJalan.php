@@ -27,6 +27,7 @@ class SuratJalan extends Model
         'jumlah',
         'asal_penyimpanan',
         'keterangan',
+        'foto_print',
     ];
 
     protected $casts = [

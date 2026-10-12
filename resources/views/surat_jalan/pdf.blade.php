@@ -261,6 +261,33 @@
 
         table.items tbody tr:nth-child(even) td { background: #fafcff; }
 
+        /* Bukti foto print. Semua thumbnail dipaksa 54x54px dengan object-fit
+           cover, jadi foto apapun resolusinya tampil sama besar dan blok surat
+           tidak ikut memanjang. */
+        .nota-foto {
+            padding: 5px 6px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .nota-foto img {
+            width: 54px;
+            height: 54px;
+            object-fit: cover;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            margin-right: 5px;
+        }
+
+        .nota-foto .label {
+            font-size: 6.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .25px;
+            color: #64748b;
+            margin-right: 6px;
+        }
+
         table.items tr:last-child td { border-bottom: 0; }
 
         /* Subtotal tiap surat, dicetak tepat di bawah barangnya. */
@@ -481,6 +508,21 @@
         @foreach ($grup['notas'] as $satu)
             @php
                 $totalJumlahSurat = $satu['items']->sum('jumlah');
+
+                // Foto print. Tiap barang sering di-upload foto yang isinya sama,
+                // jadi disaring pakai isi filenya dulu, baru disematkan sebagai
+                // base64 supaya DomPDF tidak perlu mengambil file dari URL.
+                $fotoPrint = \App\Support\FotoNota::unik($satu['items'], 'foto_print', 6)
+                    ->map(function ($path) {
+                        $lengkap = storage_path('app/public/' . $path);
+
+                        return is_file($lengkap)
+                            ? 'data:image/' . strtolower(pathinfo($lengkap, PATHINFO_EXTENSION))
+                                . ';base64,' . base64_encode(file_get_contents($lengkap))
+                            : null;
+                    })
+                    ->filter()
+                    ->values();
             @endphp
             <div class="surat">
                 <div class="surat-head">
@@ -498,6 +540,15 @@
                         @endif
                     </div>
                 </div>
+
+                @if ($fotoPrint->isNotEmpty())
+                    <div class="nota-foto">
+                        <span class="label">Bukti Foto</span><img src="{{ $fotoPrint->first() }}" alt="Foto print">
+                        @foreach ($fotoPrint->slice(1) as $gambar)
+                            <img src="{{ $gambar }}" alt="Foto print">
+                        @endforeach
+                    </div>
+                @endif
 
                 <table class="items">
                     <thead>
@@ -545,6 +596,8 @@
             @endif
         @endforeach
     @empty
+        {{-- Kalau tidak ada surat pada periode ini, tetap tampilkan tabel kosong
+             supaya halaman PDF tidak berhenti tanpa penjelasan. --}}
         <table class="data">
             <tbody>
                 <tr>

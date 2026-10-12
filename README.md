@@ -25,6 +25,10 @@ Rekap tinting per unit, dipisah per cabang, dengan total nilai tiap nota.
 
 ![Laporan Oplosan](docs/screenshots/laporan-oplosan-desktop.png)
 
+Yang dicatat di sini hanya pekerjaan **tinting** (ada kata `TINTING` pada rincian
+bahannya). Belanja bahan pendukung — clear, hardener, spot putty, amplas, dan
+sejenisnya — masuk ke **Riwayat Order**, bukan ke sini.
+
 ### Riwayat Order
 Rekap belanja bahan & consumable per cabang.
 
@@ -45,6 +49,24 @@ Rekap barang keluar gudang. Satu nomor surat tampil sebagai satu kartu berisi se
 (kode barang, nama, kemasan, jumlah, asal penyimpanan, keterangan).
 
 ![Surat Jalan](docs/screenshots/surat-jalan-desktop.png)
+
+Tiap surat bisa dilampiri **foto print** sebagai bukti pengiriman. Thumbnail-nya muncul saat rincian
+barang dibuka, bisa diklik untuk dilihat ukuran penuh, dan ikut tercetak di kop PDF surat jalan.
+
+Rincian barang dibuka sebagai tabel yang bisa digeser ke samping, jadi kolom **Aksi** (edit/hapus)
+tetap terjangkau walau layarnya sempit. Kalau **beberapa surat punya nomor yang sama**, masing-masing
+kartu diberi tanda urutan (*Surat 1*, *Surat 2*) supaya tidak tertukar saat diverifikasi.
+
+Form tambah & edit memakai susunan kartu yang sama — kepala surat (cabang, tanggal, no. surat),
+barang yang dikirim, info barang lain di surat yang sama, lalu foto print:
+
+![Tambah Surat Jalan](docs/screenshots/surat-jalan-tambah.png)
+
+![Edit Surat Jalan](docs/screenshots/surat-jalan-edit.png)
+
+PDF-nya bisa dipratinjau dulu di browser sebelum dicetak atau diunduh:
+
+![Preview PDF Surat Jalan](docs/screenshots/surat-jalan-preview-pdf.png)
 
 ### Mode Manajer
 Tampilan pengawasan — menyorot biaya yang menyimpang dari rata-rata dan mutu kerja oplosan.
@@ -85,7 +107,7 @@ Bottom navigation, kartu bertumpuk, dan tombol besar supaya nyaman dipakai satu 
 - **Riwayat Order** — catat pembelian bahan & consumable (kode barang, qty, satuan, harga, diskon).
 - **Surat Jalan** — catat barang keluar gudang (no. surat, tanggal, cabang, kode barang, nama barang/cat, kemasan, jumlah, asal penyimpanan, keterangan).
 - Satu nota / surat bisa berisi **banyak item**. Item dengan nomor bukti (atau nomor surat) yang sama otomatis digabung jadi satu kartu.
-- Upload foto nota/faktur.
+- Upload foto nota/faktur, termasuk **foto print** untuk surat jalan sebagai bukti pengiriman.
 - Nomor urut otomatis bila dikosongkan.
 
 ### Laporan & Statistik
@@ -173,6 +195,26 @@ php artisan serve
 
 Buka **http://localhost:8000**
 
+> `php artisan db:seed` sekaligus mengimpor data contoh dari `sumber-data/teks/`
+> (kalau folder itu ada). Data mentahnya sengaja tidak ikut ke repo karena besar.
+
+### Data yang Sudah Masuk
+
+| Modul | September 2026 | Oktober 2026 |
+|---|---|---|
+| Laporan oplosan (tinting) | 120 baris · 106.315 cc | 14 baris · 13.151 cc |
+| Riwayat order (belanja bahan) | 102 baris | 22 baris |
+| Laporan harian oplosan | — | 28 pekerjaan · 18.030 cc (7 hari) |
+| Surat jalan | — | 1 surat |
+
+Data September diimpor lewat `SumberDataSeeder` dan **angkanya dibandingkan dengan
+yang tercetak di dokumen**: total oplosan 106.315 cc / Rp 53.646.256,00 dan grand
+total order Rp 69.545.876,70 — keduanya pas, impor berhenti kalau meleset.
+
+Data Oktober diisi dari faktur. Sebagian baris masih ditandai untuk ditelusuri
+ulang lewat halaman **Edit** (mis. qty yang belum sesuai faktur), karena foto
+fakturnya belum sempat dicocokkan satu per satu.
+
 > Ada juga pintasan `composer setup` yang menjalankan langkah 2–5 sekaligus,
 > dan `composer dev` untuk menjalankan server + queue + Vite bersamaan.
 
@@ -224,7 +266,8 @@ app/
     Cabang.php                     Daftar cabang (satu sumber)
     NotaGrouper.php                Pengelompokan item jadi nota / surat
     HarianGrouper.php              Pengelompokan laporan harian per tanggal
-    FotoNota.php                   Pengolahan foto nota
+    FotoNota.php                   Pengolahan & penyaringan foto nota (isi sama = 1 foto)
+    SumberData.php                 Pembaca berkas mentah di sumber-data/teks
     Logo.php                       Path logo untuk kop PDF
     Rupiah.php                     Format angka rupiah
     Tanggal.php                    Format tanggal Indonesia
@@ -249,8 +292,13 @@ resources/views/
   layouts/manajer.blade.php        Menu khusus manajer
 
 database/
-  migrations/                      Skema tabel
+  migrations/                      Skema tabel (termasuk kolom total_baris
+                                   pada riwayat_orders & foto_print surat_jalan)
   seeders/DatabaseSeeder.php       Akun awal
+  seeders/SumberDataSeeder.php     Impor data asli dari sumber-data/teks
+
+sumber-data/teks/                  Teks hasil ekstraksi dokumen asli (oplosan,
+                                   riwayat, harian) - dipakai SumberDataSeeder
 ```
 
 ### Menambah Cabang Baru
@@ -275,7 +323,8 @@ Dropdown filter, form input, dan pengelompokan laporan otomatis ikut menyesuaika
 ## Catatan Teknis
 
 - **Pengelompokan nota** — kunci pengelompokan adalah `nomor bukti + tanggal`, bukan id baris. Jadi satu nota berisi banyak item tetap dihitung **satu nota** di semua total.
-- **Nilai total** — `qty x harga satuan - diskon`, dihitung dari accessor `total_item` / kolom `harga_nota`.
+- **Nilai total** — kalau kolom `total_baris` terisi, nilai itulah yang dipakai sebagai total kotor. Kalau kosong, baru dihitung `qty x harga satuan`. Alasannya: pada faktur Wira Toyota kolom qty berisi **volume cat (CC/LTR)**, bukan jumlah barang, sehingga `qty x harga satuan` tidak berlaku di sana — sedangkan faktur PT. Sumber Tanjung Jaya memang memakai qty sebagai jumlah barang. Kolom `total_baris` **nullable**, jadi faktur lama yang belum diisi tetap dihitung seperti semula.
+- **Pemisahan oplosan vs belanja bahan** — satu nota Wira Toyota sering memuat keduanya sekaligus (pekerjaan tinting + bahan pendukung). Baris bertanda `TINTING` masuk `laporan_oplosans`, sisanya (clear, hardener, spot putty, dsb.) masuk `riwayat_orders`. Jadi satu nota bisa muncul di dua halaman sekaligus dengan isi yang berbeda — itu memang benar, bukan duplikat.
 - **Filter cabang** — memakai kolom `cabang_area` di keempat tabel (`laporan_harian_oplosans`, `laporan_oplosans`, `riwayat_orders`, dan `surat_jalans`).
 - **Laporan harian per tanggal** — dikelompokkan lewat `App\Support\HarianGrouper`, satu tanggal = satu blok. Tidak ada nomor nota, jadi kuncinya murni tanggal.
 - **Surat jalan per nomor surat** — dikelompokkan lewat `App\Support\NotaGrouper` dengan kunci `nomor surat + tanggal`, jadi satu surat berisi banyak barang tetap dihitung satu surat.
@@ -283,6 +332,9 @@ Dropdown filter, form input, dan pengelompokan laporan otomatis ikut menyesuaika
 - **Paginasi dashboard** — dashboard punya empat daftar yang dipotong sendiri-sendiri. `RiwayatOrderController::paginateNotas()` menerima nama parameter halaman (`hal_harian`, `hal_surat`, dan `hal_order` untuk versi paginator nota), supaya membuka halaman 2 salah satu daftar tidak ikut menggeser daftar lainnya. Parameter itu juga disimpan balik ke query string paginator supaya tombol "Berikutnya" tetap membawa filter periode yang aktif.
 - **Ringkasan dashboard** — kartu "Total Laporan Harian" dan "Matching Warna Sama" memakai periode filter; laporan harian dihitung per **baris pekerjaan**, sedangkan tren 6 bulan menghitungnya per **tanggal kerja** (satu hari = satu pekerjaan) supaya angkanya setara dengan daftar yang ditampilkan.
 - **Logo** — `App\Support\Logo::path()` mengembalikan path file (bukan data-URI) karena DomPDF menolak data-URI base64. Lambangnya ditaruh di `public/images/logo.jpg` dan dipakai seragam oleh sidebar, halaman login, serta kop keempat PDF.
+- **Foto bukti** — nota oplosan (`foto_nota`), riwayat order (`foto_faktur`), dan surat jalan (`foto_print`) disaring lewat `App\Support\FotoNota::unik()`: satu nota sering diisi beberapa item dengan foto yang isinya sama, jadi penyaringan dilakukan berdasarkan **isi file (md5)**, bukan nama path, supaya satu foto hanya tampil sekali. Di PDF, foto disematkan sebagai **base64** supaya DomPDF tidak perlu mengambil file lewat URL.
+- **Form unggah** — form Tambah/Edit Surat Jalan memakai `enctype="multipart/form-data"`; tanpa itu file tidak ikut terkirim dan request jatuh ke halaman login. Foto lama tetap ditampilkan di form Edit dan hanya dihapus dari storage kalau benar-benar diganti.
+- **Data sumber** — `SumberDataSeeder` membaca teks di `sumber-data/teks/` lalu **membandingkan hasil rekapnya dengan angka yang tercetak di dokumen asli**; kalau meleset, impor berhenti dengan error supaya data tidak masuk setengah jalan. Folder `sumber-data/` selain `teks/` (PDF & foto asli) tidak ikut ke repo - kalau teksnya tidak ada, impor dilewati tanpa menggagalkan `php artisan db:seed`.
 
 ---
 

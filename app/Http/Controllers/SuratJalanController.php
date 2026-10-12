@@ -8,6 +8,7 @@ use App\Support\NotaGrouper;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Surat jalan (barang keluar gudang).
@@ -83,43 +84,53 @@ class SuratJalanController extends Controller
         $totalSurat = $semuaSurat->count();
         $rataPerSurat = $totalSurat > 0 ? $totalJumlah / $totalSurat : 0;
 
-            // Barang yang paling sering dikirim pada periode ini.
-            $perBarang = $semua
-                ->groupBy(fn ($item) => $item->nama_barang)
-                ->map(fn ($baris, $nama) => [
-                    'barang' => $nama,
-                    'kali'   => $baris->count(),
-                    'jumlah' => $baris->sum('jumlah'),
-                ])
-                ->sortByDesc('jumlah')
-                ->take(6)
-                ->values();
+        // Barang yang paling sering dikirim pada periode ini.
+        $perBarang = $semua
+            ->groupBy(fn ($item) => $item->nama_barang)
+            ->map(fn ($baris, $nama) => [
+                'barang' => $nama,
+                'kali' => $baris->count(),
+                'jumlah' => $baris->sum('jumlah'),
+            ])
+            ->sortByDesc('jumlah')
+            ->take(6)
+            ->values();
 
-            // Ringkasan per cabang supaya kontribusi tiap area tetap terlihat.
-            $totalJumlahAman = $totalJumlah > 0 ? $totalJumlah : 1;
-            $perCabang = $semuaSurat
-                ->groupBy(fn ($surat) => $surat['items']->first()->cabang_area ?: Cabang::default())
-                ->map(fn ($baris, $nama) => [
-                    'cabang' => $nama,
-                    'surat'  => $baris->count(),
-                    'barang' => $baris->sum(fn ($s) => $s['jumlahItem']),
-                    'jumlah' => $baris->sum(fn ($s) => $s['items']->sum('jumlah')),
-                    'persen' => round(($baris->sum(fn ($s) => $s['items']->sum('jumlah')) / $totalJumlahAman) * 100),
-                ])
-                ->sortByDesc('jumlah')
-                ->values();
+        // Ringkasan per cabang supaya kontribusi tiap area tetap terlihat.
+        $totalJumlahAman = $totalJumlah > 0 ? $totalJumlah : 1;
+        $perCabang = $semuaSurat
+            ->groupBy(fn ($surat) => $surat['items']->first()->cabang_area ?: Cabang::default())
+            ->map(fn ($baris, $nama) => [
+                'cabang' => $nama,
+                'surat' => $baris->count(),
+                'barang' => $baris->sum(fn ($s) => $s['jumlahItem']),
+                'jumlah' => $baris->sum(fn ($s) => $s['items']->sum('jumlah')),
+                'persen' => round(($baris->sum(fn ($s) => $s['items']->sum('jumlah')) / $totalJumlahAman) * 100),
+            ])
+            ->sortByDesc('jumlah')
+            ->values();
 
-            $suratHalaman = RiwayatOrderController::paginateNotas(
-                $semuaSurat,
-                self::SURAT_PER_HALAMAN,
-                $request,
-            );
+        $suratHalaman = RiwayatOrderController::paginateNotas(
+            $semuaSurat,
+            self::SURAT_PER_HALAMAN,
+            $request,
+        );
 
-            return view('surat_jalan.index', compact(
-                'suratHalaman', 'totalBaris', 'totalJumlah', 'totalSurat', 'rataPerSurat',
-                'perBarang', 'perCabang', 'bulan', 'tahun', 'cabang'
-            ));
+        // Nomor urut tiap surat di daftar. Dipakai kartu surat untuk membedakan
+        // surat yang nomornya kebetulan sama, dan tetap nyambung antar halaman
+        // karena dihitung dari posisi surat di seluruh periode, bukan per halaman.
+        $nomorSurat = [];
+        $posisiSurat = ($suratHalaman->currentPage() - 1) * self::SURAT_PER_HALAMAN;
+        foreach ($suratHalaman->items() as $kunci => $satu) {
+            $nomorSurat[$kunci] = ++$posisiSurat;
         }
+
+        return view('surat_jalan.index', compact(
+            'nomorSurat',
+            'suratHalaman', 'totalBaris', 'totalJumlah', 'totalSurat', 'rataPerSurat',
+            'perBarang', 'perCabang', 'bulan', 'tahun', 'cabang'
+        ));
+    }
 
     /**
      * Tampilkan form tambah surat jalan.
@@ -135,6 +146,10 @@ class SuratJalanController extends Controller
     public function store(Request $request)
     {
         $validated = $this->validasi($request);
+
+        if ($request->hasFile('foto_print')) {
+            $validated['foto_print'] = $request->file('foto_print')->store('foto-print', 'public');
+        }
 
         // Kalau nomor urut dikosongkan, barang ini ditaruh di urutan terakhir
         // surat tersebut.
@@ -202,6 +217,13 @@ class SuratJalanController extends Controller
     {
         $validated = $this->validasi($request);
 
+        if ($request->hasFile('foto_print')) {
+            if ($suratJalan->foto_print) {
+                Storage::disk('public')->delete($suratJalan->foto_print);
+            }
+            $validated['foto_print'] = $request->file('foto_print')->store('foto-print', 'public');
+        }
+
         // Nomor urut dibiarkan seperti semula kalau form mengosongkannya.
         if (blank($validated['nomor_urut'] ?? null)) {
             unset($validated['nomor_urut']);
@@ -219,6 +241,10 @@ class SuratJalanController extends Controller
      */
     public function destroy(SuratJalan $suratJalan)
     {
+        if ($suratJalan->foto_print) {
+            Storage::disk('public')->delete($suratJalan->foto_print);
+        }
+
         $suratJalan->delete();
 
         return redirect()
@@ -242,6 +268,7 @@ class SuratJalanController extends Controller
             'jumlah' => 'required|integer|min:1',
             'asal_penyimpanan' => 'nullable|string|max:255',
             'keterangan' => 'nullable|string|max:255',
+            'foto_print' => 'nullable|image|max:4096',
         ]);
     }
 

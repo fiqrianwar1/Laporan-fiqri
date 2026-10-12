@@ -23,7 +23,7 @@
         </div>
     </div>
 
-    <form action="{{ route('surat-jalan.update', $surat) }}" method="POST" class="space-y-5">
+    <form action="{{ route('surat-jalan.update', $surat) }}" method="POST" enctype="multipart/form-data" class="space-y-5">
         @csrf
         @method('PUT')
 
@@ -33,14 +33,13 @@
                 'tanggal' => optional($surat->tanggal)->format('Y-m-d'),
                 'nomor_surat' => $surat->nomor_surat,
                 'nomor_urut' => $surat->nomor_urut,
-                'kirim_kepada' => $surat->kirim_kepada,
-                'alamat_penerima' => $surat->alamat_penerima,
                 'kode_barang' => $surat->kode_barang,
                 'nama_barang' => $surat->nama_barang,
                 'kemasan_barang' => $surat->kemasan_barang,
                 'jumlah' => $surat->jumlah,
                 'asal_penyimpanan' => $surat->asal_penyimpanan,
                 'keterangan' => $surat->keterangan,
+                'foto_print' => $surat->foto_print,
             ],
             'tombol' => 'Simpan Perubahan',
         ])

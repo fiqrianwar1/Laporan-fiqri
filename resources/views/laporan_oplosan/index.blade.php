@@ -218,7 +218,9 @@
                         <a href="{{ route('laporan-oplosan.index') }}" class="btn btn-ghost h-[42px] shrink-0">Reset</a>
                     @endif
                 </div>
-            </form>
+                </form>
+
+                <x-bulan-chip :aksi="route('laporan-oplosan.index')" :bulan="request('bulan')" :tahun="request('tahun')" :cabang="request('cabang')" />
             </div>
         </div>
 

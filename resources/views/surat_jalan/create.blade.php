@@ -23,7 +23,7 @@
         </div>
     </div>
 
-    <form action="{{ route('surat-jalan.store') }}" method="POST" class="space-y-5">
+    <form action="{{ route('surat-jalan.store') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
         @csrf
 
         @include('surat_jalan._form', [
