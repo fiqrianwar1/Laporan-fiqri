@@ -120,13 +120,18 @@ $harian = collect([
         'jam_selesai' => $b[7],
         'durasi_menit' => $durasi,
         'hasil_matching' => $b[8],
-        'keterangan' => null,
+        'keterangan' => match ($b[1]) {
+            'DA 1424 PF' => 'Cat sisa nota sebelumnya, tidak ada tambahan hardener.',
+            'D 1524 AMQ' => 'Warna sedikit lebih gelap dari contoh unit.',
+            default => null,
+        },
         'cabang_area' => $i < 2 ? $bjm : $pal,
     ];
 });
 
 $dataHarian = [
     'baris' => $harian,
+    'hari' => App\Support\HarianGrouper::group($harian),
     'totalBaris' => $harian->count(),
     'totalVolume' => $harian->sum('volume_cc'),
     'totalDurasi' => $harian->sum('durasi_menit'),

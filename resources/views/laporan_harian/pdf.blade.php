@@ -176,20 +176,33 @@
             color: #0f172a;
         }
 
+        /* Tabel rincian pekerjaan tiap tanggal.
+           Disamakan dengan tabel subtotal (table.data) supaya garis kolom
+           atas-bawah tetap nyambung walau dua tabel terpisah. */
         table.data {
             width: 100%;
             border-collapse: collapse;
             margin-top: 3px;
         }
 
+        table.items {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            margin-top: 0;
+        }
+
         table.data th,
-        table.data td {
+        table.data td,
+        table.items th,
+        table.items td {
             border: 1px solid #d7dee8;
             padding: 5px 6px;
             vertical-align: middle;
         }
 
-        table.data th {
+        table.data th,
+        table.items th {
             background: #1d4ed8;
             color: #fff;
             text-transform: uppercase;
@@ -199,6 +212,17 @@
         }
 
         table.data td { font-size: 8.4px; }
+        table.items td { font-size: 8.4px; }
+
+        /* Di dalam blok hari, garis atas header tidak perlu dobel dengan
+           garis bawah kepala blok. */
+        table.items thead th { border-top: none; }
+
+        table.items tbody tr:nth-child(even) td { background: #f5f8ff; }
+
+        /* Kolom keterangan: boleh turun baris, tapi kalau kosong tetap tampil
+           rapi dengan tanda — supaya tidak ada kolom yang menganga kosong. */
+        .col-ket { word-wrap: break-word; }
 
         table.data tbody tr:nth-child(even) td { background: #f5f8ff; }
 
@@ -445,7 +469,7 @@
                     @endif
                     &middot; {{ $blok['sama'] }}/{{ $blok['jumlahItem'] }} matching sama
                     @if ($platHari->isNotEmpty())
-                        &middot; {{ $platHari->take(3)->implode(' \u00b7 ') }}{{ $platHari->count() > 3 ? ' +' . ($platHari->count() - 3) . ' lainnya' : '' }}
+                        &middot; {{ $platHari->take(3)->implode(' · ') }}{{ $platHari->count() > 3 ? ' +' . ($platHari->count() - 3) . ' lainnya' : '' }}
                     @endif
                     @if ($cabangHari->isNotEmpty())
                         &middot; {{ $cabangHari->implode(', ') }}
@@ -456,16 +480,17 @@
             <table class="items">
                 <thead>
                     <tr>
-                        <th class="center" style="width: 5%;">No</th>
+                        <th class="center" style="width: 4.5%;">No</th>
                         <th style="width: 11%;">Plat Nomor</th>
-                        <th style="width: 13%;">Kode Warna</th>
-                        <th style="width: 13%;">Tipe Mobil</th>
-                        <th style="width: 12%;">Bahan Cat</th>
-                        <th class="right" style="width: 9%;">Volume</th>
+                        <th style="width: 12%;">Kode Warna</th>
+                        <th style="width: 12.5%;">Tipe Mobil</th>
+                        <th style="width: 10.5%;">Bahan Cat</th>
+                        <th class="right" style="width: 8.5%;">Volume</th>
                         <th class="center" style="width: 7%;">Dibuat</th>
                         <th class="center" style="width: 7%;">Selesai</th>
                         <th class="right" style="width: 7%;">Durasi</th>
-                        <th class="center" style="width: 9%;">Matching</th>
+                        <th class="center" style="width: 8.5%;">Matching</th>
+                        <th style="width: 11.5%;">Keterangan</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -475,15 +500,16 @@
                         @endphp
                         <tr>
                             <td class="center muted">{{ $loop->iteration }}</td>
-                            <td class="strong">{{ $item->plat_nomor }}</td>
-                            <td>{{ $item->kode_warna }}</td>
-                            <td>{{ $item->tipe_mobil }}</td>
-                            <td>{{ $item->bahan_cat }}</td>
+                            <td class="strong">{{ filled($item->plat_nomor) ? $item->plat_nomor : '—' }}</td>
+                            <td>{{ filled($item->kode_warna) ? $item->kode_warna : '—' }}</td>
+                            <td>{{ filled($item->tipe_mobil) ? $item->tipe_mobil : '—' }}</td>
+                            <td>{{ filled($item->bahan_cat) ? $item->bahan_cat : '—' }}</td>
                             <td class="right strong">{{ number_format($item->volume_cc) }} cc</td>
-                            <td class="center">{{ $item->jam_dibuat ? \Illuminate\Support\Str::of($item->jam_dibuat)->substr(0, 5) : '\u2014' }}</td>
-                            <td class="center">{{ $item->jam_selesai ? \Illuminate\Support\Str::of($item->jam_selesai)->substr(0, 5) : '\u2014' }}</td>
-                            <td class="right muted">{{ $item->durasi_menit !== null ? $item->durasi_menit . ' mnt' : '\u2014' }}</td>
-                            <td class="center"><span class="badge-match {{ $kelasMatch }}">{{ $item->hasil_matching }}</span></td>
+                            <td class="center">{{ filled($item->jam_dibuat) ? \Illuminate\Support\Str::of($item->jam_dibuat)->substr(0, 5) : '—' }}</td>
+                            <td class="center">{{ filled($item->jam_selesai) ? \Illuminate\Support\Str::of($item->jam_selesai)->substr(0, 5) : '—' }}</td>
+                            <td class="right muted">{{ filled($item->durasi_menit) ? $item->durasi_menit . ' mnt' : '—' }}</td>
+                            <td class="center"><span class="badge-match {{ $kelasMatch }}">{{ filled($item->hasil_matching) ? $item->hasil_matching : '—' }}</span></td>
+                            <td class="col-ket">{{ filled($item->keterangan) ? $item->keterangan : '—' }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -501,8 +527,9 @@
                     </td>
                     <td class="right">{{ number_format($blok['volume']) }} cc</td>
                     <td colspan="2" class="center">&nbsp;</td>
-                    <td class="right">{{ $blok['durasi'] > 0 ? number_format($blok['durasi']) . ' mnt' : '\u2014' }}</td>
+                    <td class="right">{{ $blok['durasi'] > 0 ? number_format($blok['durasi']) . ' mnt' : '—' }}</td>
                     <td class="center">&nbsp;</td>
+                    <td>&nbsp;</td>
                 </tr>
             </tfoot>
         </table>

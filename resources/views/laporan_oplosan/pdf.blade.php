@@ -552,7 +552,7 @@
             // Satu nota bisa memuat beberapa unit - semuanya ditulis di judul
             // blok supaya tidak ada unit yang hilang dari cetakan.
             $platNota = $nota['items']->pluck('no_plat')->filter()->unique()->values();
-            $platRingkas = $platNota->take(2)->implode(' \u00b7 ')
+            $platRingkas = $platNota->take(2)->implode(' · ')
                 . ($platNota->count() > 2 ? ' +' . ($platNota->count() - 2) . ' lainnya' : '');
 
             // Foto bukti nota. Tiap item sering di-upload foto yang isinya sama,
