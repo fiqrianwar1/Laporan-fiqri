@@ -22,7 +22,7 @@
             background: #1d4ed8;
             background-image: linear-gradient(120deg, #1e40af 0%, #1d4ed8 55%, #2563eb 100%);
             color: #fff;
-            padding: 14px 26px 13px;
+            padding: 16px 26px 15px;
             margin: 0 -26px 0;
         }
 
@@ -30,19 +30,20 @@
         .banner td { vertical-align: middle; padding: 0; }
 
         /* Kotak logo WTJ. display: block wajib supaya width/height dipakai
-           DomPDF - sebagai span (inline) kotaknya jadi pil tinggi. */
+           DomPDF — sebagai span (inline) kotaknya jadi pil tinggi yang
+           menyembul keluar banner. */
         .logo {
             display: block;
-            width: 46px;
-            height: 46px;
+            width: 44px;
+            height: 44px;
             border-radius: 10px;
             background: #ffffff;
             text-align: center;
             padding: 3px;
         }
         .logo img {
-            width: 40px;
-            height: 40px;
+            width: 38px;
+            height: 38px;
             object-fit: contain;
             display: block;
             margin: 0 auto;
@@ -52,10 +53,10 @@
         .logo .inisial {
             display: block;
             color: #1d4ed8;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 700;
-            line-height: 40px;
-            letter-spacing: .5px;
+            line-height: 38px;
+            letter-spacing: 0;
         }
 
         .banner .brand {
@@ -196,6 +197,9 @@
 
         table.data tbody tr:nth-child(even) td { background: #f5f8ff; }
 
+        .col-no  { width: 5%;  }
+        .col-qty { width: 7%;  }
+
         .right { text-align: right; }
         .center { text-align: center; }
         .strong { font-weight: 700; color: #0f172a; }
@@ -212,10 +216,15 @@
         }
 
         .surat-head {
-            background: #eff6ff;
-            border-bottom: 1px solid #bfdbfe;
+            background: #eef2ff;
+            border-bottom: 1px solid #c7d2fe;
             padding: 6px 9px;
         }
+
+        /* Kepala surat dibuat sebagai tabel supaya nomor/keterangan panjang
+           bisa turun ke baris berikutnya, tidak menabrak angka totalnya. */
+        table.surat-head { width: 100%; border-collapse: collapse; }
+        table.surat-head td { vertical-align: top; padding: 0; }
 
         .surat-head .nomor {
             font-size: 9.5px;
@@ -230,8 +239,22 @@
         }
 
         .surat-head .total {
-            float: right;
-            font-size: 9.5px;
+            text-align: right;
+            white-space: nowrap;
+            width: 120px;
+        }
+
+        .surat-head .total .lbl {
+            display: block;
+            font-size: 6.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .25px;
+            color: #94a3b8;
+        }
+
+        .surat-head .total .angka {
+            font-size: 10.5px;
             font-weight: 700;
             color: #0f172a;
         }
@@ -242,14 +265,14 @@
         }
 
         table.items th {
-            background: #f8fafc;
-            color: #475569;
+            background: #f1f5f9;
+            color: #334155;
             text-transform: uppercase;
             font-size: 6.5px;
             font-weight: 700;
             letter-spacing: .25px;
             padding: 4px 6px;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid #cbd5e1;
         }
 
         table.items td {
@@ -289,6 +312,11 @@
         }
 
         table.items tr:last-child td { border-bottom: 0; }
+
+        .item-no {
+            color: #94a3b8;
+            font-weight: 700;
+        }
 
         /* Subtotal tiap surat, dicetak tepat di bawah barangnya. */
         .subtotal td {
@@ -526,19 +554,27 @@
             @endphp
             <div class="surat">
                 <div class="surat-head">
-                    <span class="total">{{ number_format($totalJumlahSurat) }}</span>
-                    <span class="nomor">
-                        <span class="nomor-bagian">Surat #{{ $satu['nomorBagian'] }}</span>
-                        {{ \App\Support\Tanggal::panjang($satu['tanggal']) }}
-                    </span>
-                    <div class="info">
-                        {{ $satu['nomor'] ?? 'Tanpa nomor' }} &middot;
-                        {{ $satu['items']->count() }} barang &middot;
-                        {{ number_format($totalJumlahSurat) }} total jumlah
-                        @if ($satu['items']->first()->cabang_area)
-                            &middot; {{ $satu['items']->first()->cabang_area }}
-                        @endif
-                    </div>
+                    <table class="surat-head">
+                        <tr>
+                            <td>
+                                <span class="nomor">
+                                    <span class="nomor-bagian">Surat #{{ $satu['nomorBagian'] }}</span>
+                                    {{ \App\Support\Tanggal::panjang($satu['tanggal']) }}
+                                </span>
+                                <div class="info">
+                                    {{ $satu['nomor'] ?? 'Tanpa nomor' }} &middot;
+                                    {{ $satu['items']->count() }} barang
+                                    @if ($satu['items']->first()->cabang_area)
+                                        &middot; {{ $satu['items']->first()->cabang_area }}
+                                    @endif
+                                </div>
+                            </td>
+                            <td class="total">
+                                <span class="lbl">Total Jumlah</span>
+                                <span class="angka">{{ number_format($totalJumlahSurat) }}</span>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
 
                 @if ($fotoPrint->isNotEmpty())
@@ -554,7 +590,7 @@
                     <thead>
                         <tr>
                             <th class="center col-no">No</th>
-                            <th style="width: 13%;">Kode Barang</th>
+                            <th style="width: 12%;">Kode Barang</th>
                             <th style="width: 28%;">Nama Barang / Cat</th>
                             <th style="width: 17%;">Kemasan Barang</th>
                             <th class="right col-qty">Jumlah</th>
@@ -581,6 +617,11 @@
             {{-- Subtotal cabang ini, langsung di bawah surat terakhirnya. --}}
             @if ($loop->last)
                 <table class="data">
+                    <colgroup>
+                        <col style="width: 5%;"><col style="width: 12%;"><col style="width: 28%;">
+                        <col style="width: 17%;"><col style="width: 7%;"><col style="width: 17%;">
+                        <col style="width: 14%;">
+                    </colgroup>
                     <tfoot>
                         <tr class="subtotal">
                             <td class="right" colspan="4">

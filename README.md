@@ -45,17 +45,23 @@ satu blok berisi semua pekerjaan hari itu:
 ![Laporan Harian Oplosan halaman 2](docs/screenshots/laporan-harian-desktop-hal2.png)
 
 ### Surat Jalan
-Rekap barang keluar gudang. Satu nomor surat tampil sebagai satu kartu berisi seluruh barangnya
-(kode barang, nama, kemasan, jumlah, asal penyimpanan, keterangan).
+Rekap barang keluar gudang. Halaman ini dibuka dengan ringkasan cepat di bagian atas: jumlah surat,
+jumlah barang, total unit terkirim, dan jumlah jenis barang. Di bawahnya ada daftar **Barang Paling
+Sering Dikirim** yang menampilkan frekuensi pengiriman tiap barang pada periode berjalan, jadi barang
+yang paling sering keluar gudang langsung kelihatan.
 
 ![Surat Jalan](docs/screenshots/surat-jalan-desktop.png)
 
-Tiap surat bisa dilampiri **foto print** sebagai bukti pengiriman. Thumbnail-nya muncul saat rincian
-barang dibuka, bisa diklik untuk dilihat ukuran penuh, dan ikut tercetak di kop PDF surat jalan.
+Daftar suratnya bisa difilter dan dicari, lalu satu nomor surat tampil sebagai satu kartu berisi
+seluruh barangnya (kode barang, nama, kemasan, jumlah, asal penyimpanan, keterangan). Tiap surat bisa
+dilampiri **foto print** sebagai bukti pengiriman. Thumbnail-nya muncul saat rincian barang dibuka,
+bisa diklik untuk dilihat ukuran penuh, dan ikut tercetak di kop PDF surat jalan.
 
 Rincian barang dibuka sebagai tabel yang bisa digeser ke samping, jadi kolom **Aksi** (edit/hapus)
-tetap terjangkau walau layarnya sempit. Kalau **beberapa surat punya nomor yang sama**, masing-masing
-kartu diberi tanda urutan (*Surat 1*, *Surat 2*) supaya tidak tertukar saat diverifikasi.
+tetap terjangkau walau layarnya sempit. Tabel rinciannya memuat Nomor Baris, Kode & Nama Barang,
+Gudang, Kemasan, Qty Unit, Harga, Disc, dan Total. Setiap surat punya kolom **Status** dengan penanda
+warna supaya tahap surat (mis. belum diverifikasi vs. sudah oke) langsung terbaca, dan tanggal
+persetujuannya tercantum di kepala surat.
 
 Form tambah & edit memakai susunan kartu yang sama — kepala surat (cabang, tanggal, no. surat),
 barang yang dikirim, info barang lain di surat yang sama, lalu foto print:
@@ -109,6 +115,8 @@ Bottom navigation, kartu bertumpuk, dan tombol besar supaya nyaman dipakai satu 
 - Satu nota / surat bisa berisi **banyak item**. Item dengan nomor bukti (atau nomor surat) yang sama otomatis digabung jadi satu kartu.
 - Upload foto nota/faktur, termasuk **foto print** untuk surat jalan sebagai bukti pengiriman.
 - Nomor urut otomatis bila dikosongkan.
+- **Ringkasan surat jalan** di atas daftar: jumlah surat, jumlah barang, total unit terkirim, jenis barang, plus daftar **barang paling sering dikirim**.
+- **Status surat jalan** ditandai kolom berwarna dan tanggal persetujuan tercantum di kepala surat.
 
 ### Laporan & Statistik
 - **Dashboard** — satu halaman memuat keempat modul: total laporan & biaya oplosan, total qty oplosan, item dibeli, total belanja, jumlah laporan harian & volume-nya, persentase matching warna, jumlah surat jalan & barang keluar. Dilengkapi tren 6 bulan (4 seri: oplosan, order, harian, surat), ringkasan bulan berjalan, barang paling sering dibeli, kode warna terbanyak, laporan per cabang, dan daftar aktivitas terbaru tiap modul.

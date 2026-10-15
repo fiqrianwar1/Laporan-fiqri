@@ -41,7 +41,10 @@ Thumbs.db
 /bukti-*.jpg
 /tmp-*
 /tmp_*
+/_tmp_*
 /scripts/_tmp_*
+/scripts/cek-*.php
+/opsionalan.md
 /scripts/_cek-*
 
 # Dokumen mentah sumber data (PDF/XLSX + foto nota asli - ukurannya besar).
